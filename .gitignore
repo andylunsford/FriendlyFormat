@@ -1,0 +1,10 @@
+node_modules/
+
+# Build artifacts
+package-*.zip
+.sandbox/files/
+.sandbox/launch-*.js
+
+# Local
+.DS_Store
+*.log

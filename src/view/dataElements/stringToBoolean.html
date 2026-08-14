@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>String to Boolean</title>
+    <link rel="stylesheet" href="../styles/friendlyFormat.css" />
+  </head>
+  <body>
+    <fieldset>
+      <legend>Source</legend>
+
+      <div class="ff-field">
+        <label for="sourceValue">Value to convert</label>
+        <div class="ff-input-group">
+          <input type="text" id="sourceValue" placeholder="%loggedIn%" />
+          <button type="button" id="sourceValueButton">Add data element</button>
+        </div>
+        <p class="ff-hint">
+          Use a data element token such as <code>%loggedIn%</code>, or type a
+          literal value.
+        </p>
+        <p class="ff-error" id="sourceValueError">Provide a value to convert.</p>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Matching</legend>
+
+      <div class="ff-field">
+        <label for="trueValues">Values treated as true</label>
+        <input type="text" id="trueValues" placeholder="true, yes, y, 1, on, t" />
+        <p class="ff-hint">
+          Comma separated. Leave blank to use
+          <code>true, yes, y, 1, on, t</code>.
+        </p>
+      </div>
+
+      <div class="ff-field">
+        <label for="falseValues">Values treated as false</label>
+        <input
+          type="text"
+          id="falseValues"
+          placeholder="false, no, n, 0, off, f"
+        />
+        <p class="ff-hint">
+          Comma separated. Leave blank to use
+          <code>false, no, n, 0, off, f</code>.
+        </p>
+        <p class="ff-error" id="overlapError">
+          A value cannot appear in both the true and false lists.
+        </p>
+      </div>
+
+      <div class="ff-checkbox">
+        <input type="checkbox" id="trimWhitespace" />
+        <label for="trimWhitespace">
+          Trim surrounding whitespace before matching
+        </label>
+      </div>
+
+      <div class="ff-checkbox">
+        <input type="checkbox" id="caseSensitive" />
+        <label for="caseSensitive">
+          Match case sensitively (off means <code>TRUE</code> and
+          <code>true</code> are equivalent)
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Edge cases</legend>
+
+      <div class="ff-field">
+        <label for="unmatchedBehavior">
+          When the value matches neither list
+        </label>
+        <select id="unmatchedBehavior">
+          <option value="default">Use the data element's default value</option>
+          <option value="truthy">
+            Convert by truthiness (non-zero numbers and any other non-empty text
+            become true)
+          </option>
+          <option value="true">Return true</option>
+          <option value="false">Return false</option>
+          <option value="null">Return null</option>
+        </select>
+      </div>
+
+      <div class="ff-field">
+        <label for="emptyBehavior">
+          When the value is empty or only whitespace
+        </label>
+        <select id="emptyBehavior">
+          <option value="default">Use the data element's default value</option>
+          <option value="false">Return false</option>
+          <option value="true">Return true</option>
+          <option value="null">Return null</option>
+        </select>
+      </div>
+
+      <div class="ff-field">
+        <label for="nullBehavior">When the value is null or undefined</label>
+        <select id="nullBehavior">
+          <option value="default">Use the data element's default value</option>
+          <option value="false">Return false</option>
+          <option value="true">Return true</option>
+          <option value="null">Return null</option>
+        </select>
+      </div>
+
+      <p class="ff-note">
+        Tags substitutes the data element's Default Value whenever this data
+        element returns <code>null</code> or <code>undefined</code>. To send a
+        real <code>null</code> to Adobe Experience Platform, choose
+        <em>Return null</em> and leave the Default Value field on this data
+        element empty.
+      </p>
+    </fieldset>
+
+    <script src="https://assets.adobedtm.com/activation/reactor/extensionbridge/extensionbridge.min.js"></script>
+    <script src="../scripts/friendlyFormat.js"></script>
+    <script>
+      (function () {
+        'use strict';
+
+        var ff = window.friendlyFormat;
+
+        ff.wireDataElementButton('sourceValue', 'sourceValueButton');
+
+        window.extensionBridge.register({
+          init: function (info) {
+            var settings = (info && info.settings) || {};
+
+            ff.setValue('sourceValue', settings.sourceValue);
+            ff.setValue('trueValues', ff.formatList(settings.trueValues));
+            ff.setValue('falseValues', ff.formatList(settings.falseValues));
+            ff.setChecked('trimWhitespace', settings.trimWhitespace, true);
+            ff.setChecked('caseSensitive', settings.caseSensitive, false);
+            ff.setValue(
+              'unmatchedBehavior',
+              settings.unmatchedBehavior || 'default'
+            );
+            ff.setValue('emptyBehavior', settings.emptyBehavior || 'default');
+            ff.setValue('nullBehavior', settings.nullBehavior || 'default');
+          },
+
+          getSettings: function () {
+            var settings = {
+              sourceValue: ff.getValue('sourceValue').trim(),
+              trimWhitespace: ff.isChecked('trimWhitespace'),
+              caseSensitive: ff.isChecked('caseSensitive'),
+              unmatchedBehavior: ff.getValue('unmatchedBehavior'),
+              emptyBehavior: ff.getValue('emptyBehavior'),
+              nullBehavior: ff.getValue('nullBehavior')
+            };
+
+            var trueValues = ff.parseList(ff.getValue('trueValues'));
+            var falseValues = ff.parseList(ff.getValue('falseValues'));
+
+            // Omit the lists when blank so the library defaults apply.
+            if (trueValues.length) {
+              settings.trueValues = trueValues;
+            }
+
+            if (falseValues.length) {
+              settings.falseValues = falseValues;
+            }
+
+            return settings;
+          },
+
+          validate: function () {
+            var sourceValid = ff.validateSourceValue();
+
+            var caseSensitive = ff.isChecked('caseSensitive');
+            var normalize = function (entry) {
+              return caseSensitive ? entry : entry.toLowerCase();
+            };
+            var trueValues = ff.parseList(ff.getValue('trueValues')).map(normalize);
+            var falseValues = ff
+              .parseList(ff.getValue('falseValues'))
+              .map(normalize);
+
+            var overlaps = trueValues.some(function (entry) {
+              return falseValues.indexOf(entry) !== -1;
+            });
+
+            ff.showError('overlapError', overlaps);
+
+            return sourceValid && !overlaps;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

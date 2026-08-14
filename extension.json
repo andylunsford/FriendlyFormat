@@ -1,0 +1,157 @@
+{
+  "platform": "web",
+  "name": "friendly-format",
+  "displayName": "Friendly Format",
+  "version": "1.0.0",
+  "description": "Data element types that coerce strings into the primitive types Adobe Experience Platform expects: Boolean, integer, and double. Each type gives you explicit control over null, empty, whitespace, and unparseable input so XDM ingestion does not reject or silently mistype your data.",
+  "iconPath": "resources/icons/friendly-format.svg",
+  "author": {
+    "name": "Andy Lunsford",
+    "url": "https://github.com/andylunsford/FriendlyFormat"
+  },
+  "viewBasePath": "src/view/",
+  "dataElements": [
+    {
+      "name": "string-to-boolean",
+      "displayName": "String to Boolean",
+      "categoryName": "Type Conversion",
+      "libPath": "src/lib/dataElements/stringToBoolean.js",
+      "viewPath": "dataElements/stringToBoolean.html",
+      "schema": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "object",
+        "properties": {
+          "sourceValue": {
+            "type": "string",
+            "minLength": 1
+          },
+          "trimWhitespace": {
+            "type": "boolean"
+          },
+          "caseSensitive": {
+            "type": "boolean"
+          },
+          "trueValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "falseValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unmatchedBehavior": {
+            "type": "string",
+            "enum": ["truthy", "true", "false", "null", "default"]
+          },
+          "emptyBehavior": {
+            "type": "string",
+            "enum": ["true", "false", "null", "default"]
+          },
+          "nullBehavior": {
+            "type": "string",
+            "enum": ["true", "false", "null", "default"]
+          }
+        },
+        "required": ["sourceValue"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "string-to-integer",
+      "displayName": "String to Integer",
+      "categoryName": "Type Conversion",
+      "libPath": "src/lib/dataElements/stringToInteger.js",
+      "viewPath": "dataElements/stringToInteger.html",
+      "schema": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "object",
+        "properties": {
+          "sourceValue": {
+            "type": "string",
+            "minLength": 1
+          },
+          "trimWhitespace": {
+            "type": "boolean"
+          },
+          "stripNonNumeric": {
+            "type": "boolean"
+          },
+          "strictParsing": {
+            "type": "boolean"
+          },
+          "decimalHandling": {
+            "type": "string",
+            "enum": ["round", "truncate", "floor", "ceil", "invalid"]
+          },
+          "invalidBehavior": {
+            "type": "string",
+            "enum": ["zero", "null", "default"]
+          },
+          "emptyBehavior": {
+            "type": "string",
+            "enum": ["zero", "null", "default"]
+          },
+          "nullBehavior": {
+            "type": "string",
+            "enum": ["zero", "null", "default"]
+          }
+        },
+        "required": ["sourceValue"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "string-to-double",
+      "displayName": "String to Double",
+      "categoryName": "Type Conversion",
+      "libPath": "src/lib/dataElements/stringToDouble.js",
+      "viewPath": "dataElements/stringToDouble.html",
+      "schema": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "object",
+        "properties": {
+          "sourceValue": {
+            "type": "string",
+            "minLength": 1
+          },
+          "trimWhitespace": {
+            "type": "boolean"
+          },
+          "stripNonNumeric": {
+            "type": "boolean"
+          },
+          "strictParsing": {
+            "type": "boolean"
+          },
+          "decimalSeparator": {
+            "type": "string",
+            "enum": ["period", "comma"]
+          },
+          "precision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20
+          },
+          "invalidBehavior": {
+            "type": "string",
+            "enum": ["zero", "null", "default"]
+          },
+          "emptyBehavior": {
+            "type": "string",
+            "enum": ["zero", "null", "default"]
+          },
+          "nullBehavior": {
+            "type": "string",
+            "enum": ["zero", "null", "default"]
+          }
+        },
+        "required": ["sourceValue"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

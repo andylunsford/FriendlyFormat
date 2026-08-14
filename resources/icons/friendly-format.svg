@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Friendly Format">
+  <rect width="64" height="64" rx="12" fill="#1473E6" />
+  <!-- Quotation marks, representing the incoming string. -->
+  <path d="M14 20h5v7a5 5 0 0 1-5 5v-3a2 2 0 0 0 2-2v-1h-2z" fill="#FFFFFF" />
+  <path d="M23 20h5v7a5 5 0 0 1-5 5v-3a2 2 0 0 0 2-2v-1h-2z" fill="#FFFFFF" />
+  <!-- Arrow, representing the conversion. -->
+  <path d="M34 25h10v-4l8 6-8 6v-4H34z" fill="#FFFFFF" />
+  <!-- Binary digits, representing the typed output. -->
+  <rect x="14" y="40" width="4" height="12" rx="2" fill="#FFFFFF" />
+  <rect x="24" y="40" width="12" height="12" rx="6" fill="none" stroke="#FFFFFF" stroke-width="4" />
+  <rect x="42" y="40" width="4" height="12" rx="2" fill="#FFFFFF" />
+  <rect x="52" y="40" width="4" height="12" rx="2" fill="#FFFFFF" />
+</svg>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>String to Double</title>
+    <link rel="stylesheet" href="../styles/friendlyFormat.css" />
+  </head>
+  <body>
+    <fieldset>
+      <legend>Source</legend>
+
+      <div class="ff-field">
+        <label for="sourceValue">Value to convert</label>
+        <div class="ff-input-group">
+          <input type="text" id="sourceValue" placeholder="%orderTotal%" />
+          <button type="button" id="sourceValueButton">Add data element</button>
+        </div>
+        <p class="ff-hint">
+          Use a data element token such as <code>%orderTotal%</code>, or type a
+          literal value.
+        </p>
+        <p class="ff-error" id="sourceValueError">Provide a value to convert.</p>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Parsing</legend>
+
+      <div class="ff-checkbox">
+        <input type="checkbox" id="trimWhitespace" />
+        <label for="trimWhitespace">Trim surrounding whitespace</label>
+      </div>
+
+      <div class="ff-checkbox">
+        <input type="checkbox" id="stripNonNumeric" />
+        <label for="stripNonNumeric">
+          Strip non-numeric characters, so <code>$1,234.56</code> becomes
+          <code>1234.56</code>
+        </label>
+      </div>
+
+      <div class="ff-checkbox">
+        <input type="checkbox" id="strictParsing" />
+        <label for="strictParsing">
+          Require the whole value to be numeric. When off, a leading number is
+          used, so <code>12.5kg</code> becomes <code>12.5</code>.
+        </label>
+      </div>
+
+      <div class="ff-field">
+        <label for="decimalSeparator">Decimal separator</label>
+        <select id="decimalSeparator">
+          <option value="period">Period, as in 1234.56</option>
+          <option value="comma">Comma, as in 1.234,56</option>
+        </select>
+      </div>
+
+      <div class="ff-field">
+        <label for="precision">Decimal places</label>
+        <input type="number" id="precision" min="0" max="20" step="1" />
+        <p class="ff-hint">
+          Optional. Rounds the result to this many decimal places. Leave blank to
+          keep the parsed value as-is.
+        </p>
+        <p class="ff-error" id="precisionError">
+          Enter a whole number between 0 and 20, or leave this blank.
+        </p>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Edge cases</legend>
+
+      <div class="ff-field">
+        <label for="invalidBehavior">
+          When the value cannot be parsed as a number
+        </label>
+        <select id="invalidBehavior">
+          <option value="default">Use the data element's default value</option>
+          <option value="null">Return null</option>
+          <option value="zero">Return 0</option>
+        </select>
+      </div>
+
+      <div class="ff-field">
+        <label for="emptyBehavior">
+          When the value is empty or only whitespace
+        </label>
+        <select id="emptyBehavior">
+          <option value="default">Use the data element's default value</option>
+          <option value="null">Return null</option>
+          <option value="zero">Return 0</option>
+        </select>
+      </div>
+
+      <div class="ff-field">
+        <label for="nullBehavior">When the value is null or undefined</label>
+        <select id="nullBehavior">
+          <option value="default">Use the data element's default value</option>
+          <option value="null">Return null</option>
+          <option value="zero">Return 0</option>
+        </select>
+      </div>
+
+      <p class="ff-note">
+        Tags substitutes the data element's Default Value whenever this data
+        element returns <code>null</code> or <code>undefined</code>. To send a
+        real <code>null</code> to Adobe Experience Platform, choose
+        <em>Return null</em> and leave the Default Value field on this data
+        element empty.
+      </p>
+    </fieldset>
+
+    <script src="https://assets.adobedtm.com/activation/reactor/extensionbridge/extensionbridge.min.js"></script>
+    <script src="../scripts/friendlyFormat.js"></script>
+    <script>
+      (function () {
+        'use strict';
+
+        var ff = window.friendlyFormat;
+
+        var isPrecisionValid = function () {
+          var raw = ff.getValue('precision').trim();
+
+          if (raw === '') {
+            return true;
+          }
+
+          var parsed = Number(raw);
+
+          return (
+            !isNaN(parsed) && parsed % 1 === 0 && parsed >= 0 && parsed <= 20
+          );
+        };
+
+        ff.wireDataElementButton('sourceValue', 'sourceValueButton');
+
+        window.extensionBridge.register({
+          init: function (info) {
+            var settings = (info && info.settings) || {};
+
+            ff.setValue('sourceValue', settings.sourceValue);
+            ff.setChecked('trimWhitespace', settings.trimWhitespace, true);
+            ff.setChecked('stripNonNumeric', settings.stripNonNumeric, false);
+            ff.setChecked('strictParsing', settings.strictParsing, true);
+            ff.setValue(
+              'decimalSeparator',
+              settings.decimalSeparator || 'period'
+            );
+            ff.setValue('precision', settings.precision);
+            ff.setValue('invalidBehavior', settings.invalidBehavior || 'default');
+            ff.setValue('emptyBehavior', settings.emptyBehavior || 'default');
+            ff.setValue('nullBehavior', settings.nullBehavior || 'default');
+          },
+
+          getSettings: function () {
+            var settings = {
+              sourceValue: ff.getValue('sourceValue').trim(),
+              trimWhitespace: ff.isChecked('trimWhitespace'),
+              stripNonNumeric: ff.isChecked('stripNonNumeric'),
+              strictParsing: ff.isChecked('strictParsing'),
+              decimalSeparator: ff.getValue('decimalSeparator'),
+              invalidBehavior: ff.getValue('invalidBehavior'),
+              emptyBehavior: ff.getValue('emptyBehavior'),
+              nullBehavior: ff.getValue('nullBehavior')
+            };
+
+            var precision = ff.getValue('precision').trim();
+
+            // Omit the property entirely when blank; the schema expects an
+            // integer when it is present.
+            if (precision !== '') {
+              settings.precision = Number(precision);
+            }
+
+            return settings;
+          },
+
+          validate: function () {
+            var sourceValid = ff.validateSourceValue();
+            var precisionValid = isPrecisionValid();
+
+            ff.markInvalid('precision', !precisionValid);
+            ff.showError('precisionError', !precisionValid);
+
+            return sourceValid && precisionValid;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
