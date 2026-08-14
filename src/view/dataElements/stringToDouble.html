@@ -3,108 +3,155 @@
   <head>
     <meta charset="utf-8" />
     <title>String to Double</title>
+    <link rel="stylesheet" href="../vendor/coral/dist/css/coral.min.css" />
     <link rel="stylesheet" href="../styles/friendlyFormat.css" />
   </head>
-  <body>
-    <fieldset>
-      <legend>Source</legend>
+  <body class="coral--light">
+    <div class="ff-view">
+      <section class="ff-section">
+        <h2 class="coral-Heading coral-Heading--S ff-section-heading">Source</h2>
 
-      <div class="ff-field">
-        <label for="sourceValue">Value to convert</label>
-        <div class="ff-input-group">
-          <input type="text" id="sourceValue" placeholder="%orderTotal%" />
-          <button type="button" id="sourceValueButton">Add data element</button>
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="sourceValue">
+            Value to convert
+          </label>
+          <div class="ff-input-group">
+            <input
+              is="coral-textfield"
+              id="sourceValue"
+              class="ff-grow"
+              placeholder="%orderTotal%"
+            />
+            <button
+              is="coral-button"
+              id="sourceValueButton"
+              type="button"
+              variant="secondary"
+              icon="data"
+              iconsize="S"
+              title="Select a data element"
+            ></button>
+          </div>
+          <span class="ff-hint">
+            Select the data element icon to insert a token such as
+            <code>%orderTotal%</code>, or type a literal value.
+          </span>
+          <span class="ff-error" id="sourceValueError" hidden>
+            Provide a value to convert.
+          </span>
         </div>
-        <p class="ff-hint">
-          Use a data element token such as <code>%orderTotal%</code>, or type a
-          literal value.
-        </p>
-        <p class="ff-error" id="sourceValueError">Provide a value to convert.</p>
-      </div>
-    </fieldset>
+      </section>
 
-    <fieldset>
-      <legend>Parsing</legend>
+      <section class="ff-section">
+        <h2 class="coral-Heading coral-Heading--S ff-section-heading">
+          Parsing
+        </h2>
 
-      <div class="ff-checkbox">
-        <input type="checkbox" id="trimWhitespace" />
-        <label for="trimWhitespace">Trim surrounding whitespace</label>
-      </div>
+        <div class="coral-Form-fieldwrapper">
+          <div class="ff-checkbox-row">
+            <coral-checkbox id="trimWhitespace">
+              Trim surrounding whitespace
+            </coral-checkbox>
+          </div>
+          <div class="ff-checkbox-row">
+            <coral-checkbox id="stripNonNumeric">
+              Strip non-numeric characters
+            </coral-checkbox>
+          </div>
+          <div class="ff-checkbox-row">
+            <coral-checkbox id="strictParsing">
+              Require the whole value to be numeric
+            </coral-checkbox>
+          </div>
+          <span class="ff-hint">
+            Stripping turns <code>$1,234.56</code> into <code>1234.56</code>.
+            With the whole-value requirement off, <code>12.5kg</code> becomes
+            <code>12.5</code>.
+          </span>
+        </div>
 
-      <div class="ff-checkbox">
-        <input type="checkbox" id="stripNonNumeric" />
-        <label for="stripNonNumeric">
-          Strip non-numeric characters, so <code>$1,234.56</code> becomes
-          <code>1234.56</code>
-        </label>
-      </div>
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="decimalSeparator">
+            Decimal separator
+          </label>
+          <coral-select id="decimalSeparator" class="ff-select">
+            <coral-select-item value="period">
+              Period, as in 1234.56
+            </coral-select-item>
+            <coral-select-item value="comma">
+              Comma, as in 1.234,56
+            </coral-select-item>
+          </coral-select>
+        </div>
 
-      <div class="ff-checkbox">
-        <input type="checkbox" id="strictParsing" />
-        <label for="strictParsing">
-          Require the whole value to be numeric. When off, a leading number is
-          used, so <code>12.5kg</code> becomes <code>12.5</code>.
-        </label>
-      </div>
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="precision">Decimal places</label>
+          <coral-numberinput
+            id="precision"
+            class="ff-number"
+            min="0"
+            max="20"
+            step="1"
+          ></coral-numberinput>
+          <span class="ff-hint">
+            Optional. Rounds the result to this many decimal places. Leave blank
+            to keep the parsed value as-is.
+          </span>
+          <span class="ff-error" id="precisionError" hidden>
+            Enter a whole number between 0 and 20, or leave this blank.
+          </span>
+        </div>
+      </section>
 
-      <div class="ff-field">
-        <label for="decimalSeparator">Decimal separator</label>
-        <select id="decimalSeparator">
-          <option value="period">Period, as in 1234.56</option>
-          <option value="comma">Comma, as in 1.234,56</option>
-        </select>
-      </div>
+      <section class="ff-section">
+        <h2 class="coral-Heading coral-Heading--S ff-section-heading">
+          Edge cases
+        </h2>
 
-      <div class="ff-field">
-        <label for="precision">Decimal places</label>
-        <input type="number" id="precision" min="0" max="20" step="1" />
-        <p class="ff-hint">
-          Optional. Rounds the result to this many decimal places. Leave blank to
-          keep the parsed value as-is.
-        </p>
-        <p class="ff-error" id="precisionError">
-          Enter a whole number between 0 and 20, or leave this blank.
-        </p>
-      </div>
-    </fieldset>
+        <div id="defaultValueNote"></div>
 
-    <fieldset>
-      <legend>Edge cases</legend>
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="invalidBehavior">
+            When the value cannot be parsed as a number
+          </label>
+          <coral-select id="invalidBehavior" class="ff-select">
+            <coral-select-item value="default">
+              Use the data element's default value
+            </coral-select-item>
+            <coral-select-item value="null">Return null</coral-select-item>
+            <coral-select-item value="zero">Return 0</coral-select-item>
+          </coral-select>
+        </div>
 
-      <div id="defaultValueNote"></div>
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="emptyBehavior">
+            When the value is empty or only whitespace
+          </label>
+          <coral-select id="emptyBehavior" class="ff-select">
+            <coral-select-item value="default">
+              Use the data element's default value
+            </coral-select-item>
+            <coral-select-item value="null">Return null</coral-select-item>
+            <coral-select-item value="zero">Return 0</coral-select-item>
+          </coral-select>
+        </div>
 
-      <div class="ff-field">
-        <label for="invalidBehavior">
-          When the value cannot be parsed as a number
-        </label>
-        <select id="invalidBehavior">
-          <option value="default">Use the data element's default value</option>
-          <option value="null">Return null</option>
-          <option value="zero">Return 0</option>
-        </select>
-      </div>
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="nullBehavior">
+            When the value is null or undefined
+          </label>
+          <coral-select id="nullBehavior" class="ff-select">
+            <coral-select-item value="default">
+              Use the data element's default value
+            </coral-select-item>
+            <coral-select-item value="null">Return null</coral-select-item>
+            <coral-select-item value="zero">Return 0</coral-select-item>
+          </coral-select>
+        </div>
+      </section>
+    </div>
 
-      <div class="ff-field">
-        <label for="emptyBehavior">
-          When the value is empty or only whitespace
-        </label>
-        <select id="emptyBehavior">
-          <option value="default">Use the data element's default value</option>
-          <option value="null">Return null</option>
-          <option value="zero">Return 0</option>
-        </select>
-      </div>
-
-      <div class="ff-field">
-        <label for="nullBehavior">When the value is null or undefined</label>
-        <select id="nullBehavior">
-          <option value="default">Use the data element's default value</option>
-          <option value="null">Return null</option>
-          <option value="zero">Return 0</option>
-        </select>
-      </div>
-    </fieldset>
-
+    <script src="../vendor/coral/dist/js/coral.min.js"></script>
     <script src="https://assets.adobedtm.com/activation/reactor/extensionbridge/extensionbridge.min.js"></script>
     <script src="../scripts/friendlyFormat.js"></script>
     <script>
@@ -143,7 +190,10 @@
               settings.decimalSeparator || 'period'
             );
             ff.setValue('precision', settings.precision);
-            ff.setValue('invalidBehavior', settings.invalidBehavior || 'default');
+            ff.setValue(
+              'invalidBehavior',
+              settings.invalidBehavior || 'default'
+            );
             ff.setValue('emptyBehavior', settings.emptyBehavior || 'default');
             ff.setValue('nullBehavior', settings.nullBehavior || 'default');
           },

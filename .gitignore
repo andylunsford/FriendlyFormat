@@ -4,6 +4,7 @@ node_modules/
 
 # Build artifacts
 package-*.zip
+src/view/vendor/
 .sandbox/files/
 .sandbox/launch-*.js
 coverage/

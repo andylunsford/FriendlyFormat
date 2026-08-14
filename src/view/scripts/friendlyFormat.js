@@ -1,6 +1,11 @@
 /**
- * Small helpers shared by the Friendly Format views. Kept dependency free and
- * ES5 so the views run in whatever browser the Tags UI is opened in.
+ * Helpers shared by the Friendly Format views.
+ *
+ * The views are built on Coral Spectrum, Adobe's implementation of the Spectrum
+ * design system, which ships as custom elements: `<input is="coral-textfield">`,
+ * `<coral-checkbox>`, `<coral-select>`, `<coral-taglist>`, and so on. Coral is
+ * vendored into `src/view/vendor/coral` so the package carries its own copy
+ * rather than depending on a CDN.
  */
 window.friendlyFormat = (function () {
   'use strict';
@@ -9,16 +14,20 @@ window.friendlyFormat = (function () {
     return document.getElementById(id);
   };
 
+  /* ------------------------------------------------------------------ *
+   * Default Value warning
+   * ------------------------------------------------------------------ */
+
   /**
    * Renders the Default Value warning shared by every Friendly Format type.
    *
    * Tags post-processes a data element's result before anything downstream sees
    * it: a `null` or `undefined` result is swapped for the Default Value, and the
    * Force lowercase and Clean text options coerce the result back into a string.
-   * Either one quietly defeats the edge-case settings above, so the guidance
-   * lives right next to them.
+   * Either one quietly defeats the edge-case settings, so the guidance lives
+   * right next to them.
    *
-   * @param {string} containerId Element that receives the warning markup.
+   * @param {string} containerId Element that receives the warning.
    */
   var renderDefaultValueNote = function (containerId) {
     var container = byId(containerId);
@@ -27,49 +36,56 @@ window.friendlyFormat = (function () {
       return;
     }
 
-    container.className = 'ff-callout';
     container.innerHTML = [
-      '<h3 class="ff-callout-title">Leave the Default Value field empty</h3>',
+      '<coral-alert variant="warning" size="L" class="ff-alert">',
+      '<coral-alert-header>Leave the Default Value field empty</coral-alert-header>',
+      '<coral-alert-content>',
       '<p>',
-      'Tags replaces this data element&rsquo;s result with its <strong>Default ',
-      'Value</strong> whenever the result is <code>null</code> or ',
+      'Tags replaces this data element&rsquo;s result with its <b>Default ',
+      'Value</b> whenever the result is <code>null</code> or ',
       '<code>undefined</code>. Setting a Default Value therefore overrides the ',
-      'choices above: <em>Return null</em> stops returning null, and ',
-      '<em>Use the data element&rsquo;s default value</em> stops leaving the ',
+      'choices below: <i>Return null</i> stops returning null, and ',
+      '<i>Use the data element&rsquo;s default value</i> stops leaving the ',
       'field unset.',
       '</p>',
       '<ul>',
       '<li>',
-      '<strong>To send a real <code>null</code></strong>, which clears the field ',
-      'in Adobe Experience Platform: choose <em>Return null</em> and leave ',
-      'Default Value empty.',
+      '<b>To send a real <code>null</code></b>, which clears the field in Adobe ',
+      'Experience Platform: choose <i>Return null</i> and leave Default Value ',
+      'empty.',
       '</li>',
       '<li>',
-      '<strong>To omit the field entirely</strong>, leaving whatever is already ',
-      'in the profile untouched: choose <em>Use the data element&rsquo;s default ',
-      'value</em> and leave Default Value empty. The result is ',
+      '<b>To omit the field entirely</b>, leaving whatever is already in the ',
+      'profile untouched: choose <i>Use the data element&rsquo;s default ',
+      'value</i> and leave Default Value empty. The result is ',
       '<code>undefined</code>, and the Web SDK drops undefined keys from the ',
       'payload.',
       '</li>',
       '<li>',
-      '<strong>A Default Value is only safe</strong> when it is a genuine ',
-      'fallback of the right type. Anything you type in that field arrives as a ',
-      '<em>string</em>, so <code>false</code> becomes <code>"false"</code> and ',
-      '<code>0</code> becomes <code>"0"</code>, which fails validation against a ',
-      'Boolean or numeric XDM field. Prefer the edge-case settings above.',
+      '<b>A Default Value is only safe</b> when it is a genuine fallback of the ',
+      'right type. Anything you type in that field arrives as a <i>string</i>, ',
+      'so <code>false</code> becomes <code>"false"</code> and <code>0</code> ',
+      'becomes <code>"0"</code>, which fails validation against a Boolean or ',
+      'numeric XDM field. Prefer the edge-case settings below.',
       '</li>',
       '</ul>',
       '<p>',
-      'For the same reason, leave <strong>Force lowercase</strong> and ',
-      '<strong>Clean text</strong> switched off. Both are string operations and ',
-      'both convert the typed result back into a string.',
-      '</p>'
+      'For the same reason, leave <b>Force lowercase</b> and <b>Clean text</b> ',
+      'switched off. Both are string operations and both convert the typed ',
+      'result back into a string.',
+      '</p>',
+      '</coral-alert-content>',
+      '</coral-alert>'
     ].join('');
   };
 
+  /* ------------------------------------------------------------------ *
+   * Data element picker
+   * ------------------------------------------------------------------ */
+
   /**
-   * Wires an "Add data element" button to the Tags data element selector. The
-   * selected data element is inserted as a `%token%` at the cursor.
+   * Wires the standard data element picker button to a text field. The selected
+   * data element is inserted as a `%token%` at the cursor.
    */
   var wireDataElementButton = function (inputId, buttonId) {
     var input = byId(inputId);
@@ -103,21 +119,121 @@ window.friendlyFormat = (function () {
     });
   };
 
-  /** Splits a comma separated list into trimmed, non-empty entries. */
-  var parseList = function (value) {
-    return String(value || '')
-      .split(',')
-      .map(function (entry) {
-        return entry.trim();
-      })
-      .filter(function (entry) {
-        return entry.length > 0;
+  /* ------------------------------------------------------------------ *
+   * Tag list field
+   * ------------------------------------------------------------------ */
+
+  /**
+   * Turns a text field and an adjacent `<coral-taglist>` into a tag entry
+   * field: type a value and press Tab, Enter, or comma to add it; each tag
+   * carries an X to remove it; Backspace in an empty field removes the last tag.
+   *
+   * @param {Object} options
+   * @param {string} options.tagListId
+   * @param {string} options.inputId
+   * @param {string} [options.restoreId] Button that restores the defaults.
+   * @param {Array<string>} options.defaults Values used when nothing is saved.
+   * @returns {Object} Controller with `getValues`, `setValues`, `restore`, and
+   *   `commitPendingInput`.
+   */
+  var createTagField = function (options) {
+    var tagList = byId(options.tagListId);
+    var input = byId(options.inputId);
+    var restoreButton = options.restoreId ? byId(options.restoreId) : null;
+
+    var getValues = function () {
+      return tagList.items.getAll().map(function (tag) {
+        return tag.value;
       });
+    };
+
+    var addValue = function (value) {
+      var trimmed = String(value).trim();
+
+      if (!trimmed) {
+        return false;
+      }
+
+      // Adding the same value twice would be meaningless, and the duplicate tag
+      // could not be told apart from the original.
+      if (
+        getValues().some(function (existing) {
+          return existing.toLowerCase() === trimmed.toLowerCase();
+        })
+      ) {
+        return false;
+      }
+
+      var tag = document.createElement('coral-tag');
+      tag.value = trimmed;
+      tag.label.textContent = trimmed;
+      tagList.items.add(tag);
+
+      return true;
+    };
+
+    var setValues = function (values) {
+      tagList.items.clear();
+      (values || []).forEach(addValue);
+    };
+
+    /** Adds whatever is typed but not yet committed. */
+    var commitPendingInput = function () {
+      var added = addValue(input.value);
+      input.value = '';
+      return added;
+    };
+
+    input.addEventListener('keydown', function (event) {
+      var key = event.key;
+
+      if (key === 'Enter' || key === ',') {
+        event.preventDefault();
+        commitPendingInput();
+        return;
+      }
+
+      if (key === 'Tab' && input.value.trim()) {
+        // Commit and stay put, so several values can be typed in a row. Tab on
+        // an empty field still moves focus the way it normally would.
+        event.preventDefault();
+        commitPendingInput();
+        return;
+      }
+
+      if (key === 'Backspace' && !input.value) {
+        var tags = tagList.items.getAll();
+
+        if (tags.length) {
+          tagList.items.remove(tags[tags.length - 1]);
+        }
+      }
+    });
+
+    // Typing a value and clicking Save directly should not silently drop it.
+    input.addEventListener('blur', commitPendingInput);
+
+    if (restoreButton) {
+      restoreButton.addEventListener('click', function () {
+        setValues(options.defaults);
+        input.value = '';
+        input.focus();
+      });
+    }
+
+    return {
+      getValues: getValues,
+      setValues: setValues,
+      restore: function () {
+        setValues(options.defaults);
+      },
+      commitPendingInput: commitPendingInput
+    };
   };
 
-  var formatList = function (list) {
-    return Array.isArray(list) ? list.join(', ') : '';
-  };
+  /* ------------------------------------------------------------------ *
+   * Field accessors
+   * ------------------------------------------------------------------ */
 
   /** Sets a field's value, clearing it when the setting is absent. */
   var setValue = function (id, value) {
@@ -130,7 +246,7 @@ window.friendlyFormat = (function () {
 
   var getValue = function (id) {
     var element = byId(id);
-    return element ? element.value : '';
+    return element ? String(element.value) : '';
   };
 
   /** Reads a checkbox, falling back to the type's documented default. */
@@ -138,7 +254,8 @@ window.friendlyFormat = (function () {
     var element = byId(id);
 
     if (element) {
-      element.checked = value === undefined ? Boolean(defaultValue) : Boolean(value);
+      element.checked =
+        value === undefined ? Boolean(defaultValue) : Boolean(value);
     }
   };
 
@@ -147,19 +264,24 @@ window.friendlyFormat = (function () {
     return Boolean(element && element.checked);
   };
 
+  /* ------------------------------------------------------------------ *
+   * Validation
+   * ------------------------------------------------------------------ */
+
   var showError = function (id, visible) {
     var element = byId(id);
 
     if (element) {
-      element.classList.toggle('ff-visible', Boolean(visible));
+      element.hidden = !visible;
     }
   };
 
+  /** Coral fields render their own error state from the `invalid` property. */
   var markInvalid = function (id, invalid) {
     var element = byId(id);
 
     if (element) {
-      element.classList.toggle('ff-invalid', Boolean(invalid));
+      element.invalid = Boolean(invalid);
     }
   };
 
@@ -179,16 +301,15 @@ window.friendlyFormat = (function () {
 
   return {
     byId: byId,
-    renderDefaultValueNote: renderDefaultValueNote,
-    wireDataElementButton: wireDataElementButton,
-    parseList: parseList,
-    formatList: formatList,
-    setValue: setValue,
+    createTagField: createTagField,
     getValue: getValue,
-    setChecked: setChecked,
     isChecked: isChecked,
-    showError: showError,
     markInvalid: markInvalid,
-    validateSourceValue: validateSourceValue
+    renderDefaultValueNote: renderDefaultValueNote,
+    setChecked: setChecked,
+    setValue: setValue,
+    showError: showError,
+    validateSourceValue: validateSourceValue,
+    wireDataElementButton: wireDataElementButton
   };
 })();

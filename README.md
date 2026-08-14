@@ -13,6 +13,7 @@ the page.
 [![Platform](https://img.shields.io/badge/platform-web-1473E6)](https://experienceleague.adobe.com/en/docs/experience-platform/tags/extension-dev/overview)
 [![Extension version](https://img.shields.io/badge/version-1.0.0-2680EB)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-6E6E6E)](LICENSE)
+[![UI](https://img.shields.io/badge/UI-Coral%20Spectrum-E34850)](https://opensource.adobe.com/coral-spectrum/)
 [![Dependencies](https://img.shields.io/badge/runtime%20dependencies-none-268E6C)](#design-notes)
 
 </div>
@@ -69,9 +70,12 @@ flowchart LR
 ## Data element types
 
 All three types share the same shape: a **Value to convert** field — normally a
-data element token such as `%rawLoggedIn%`, insertable with the *Add data
-element* button — plus parsing options and three explicit edge-case settings.
-Full reference: [`docs/data-element-types.md`](docs/data-element-types.md).
+data element token such as `%rawLoggedIn%`, inserted with the standard data
+element picker next to the field — plus parsing options and three explicit
+edge-case settings. The views are built with
+[Coral Spectrum](https://opensource.adobe.com/coral-spectrum/), so they look and
+behave like the rest of the Data Collection UI. Full reference:
+[`docs/data-element-types.md`](docs/data-element-types.md).
 
 ### String to Boolean
 
@@ -93,8 +97,10 @@ Matches the input against a list of true values and a list of false values.
 "maybe"    → your choice: truthiness, true, false, null, or unset
 ```
 
-Both lists are editable, so `Enabled` / `Disabled` or `Y` / `N` work as well as
-the defaults. **Truthiness conversion** handles "treat anything that is not
+Both lists are tag fields, pre-filled with the defaults: type a value and press
+**Tab**, Enter, or comma to add it, and select the **X** on a tag to remove it.
+*Restore defaults* refills a list, so `Enabled` / `Disabled` or `Y` / `N` are as
+easy to set up as the defaults are to keep. **Truthiness conversion** handles "treat anything that is not
 explicitly false as true": it judges numeric strings numerically, so `"2"` is
 `true` while `"0.0"` and `"-0"` are `false`, and everything else non-empty is
 `true`. A value that is already a Boolean passes through untouched.
@@ -229,9 +235,10 @@ typeof _satellite.getVar('loggedIn');   // "boolean", not "string"
 ## Local development
 
 ```bash
-npm install
+npm install       # also copies Coral Spectrum into src/view/vendor
 npm test          # unit tests for the library modules (node:test, no browser needed)
 npm run validate  # reactor-validator: checks extension.json against the manifest schema
+npm run vendor    # refreshes the vendored Coral Spectrum on demand
 npm run sandbox   # serves views at https://localhost:4000
 ```
 
@@ -264,12 +271,20 @@ extension.json                  Manifest: the three data element types and their
 src/lib/dataElements/           Runtime library modules, one per type (CommonJS, ES5)
 src/lib/helpers/                Shared edge-case and numeric-parsing logic
 src/view/dataElements/          Configuration views shown in the Tags UI
-src/view/scripts|styles/        Shared view helpers and styling
+src/view/scripts|styles/        Shared view helpers and layout
+src/view/vendor/coral/          Coral Spectrum runtime, copied in at build time (not committed)
+scripts/vendor-coral.js         Copies Coral Spectrum out of node_modules
 resources/icons/                Extension icon
 tests/                          Unit tests for the library modules
 docs/                           Option reference and submission checklist
 .sandbox/container.js           Sample data elements for local sandbox testing
 ```
+
+The views load Coral Spectrum from the package itself rather than a CDN, so
+`src/view/vendor/coral` has to exist before the sandbox or the packager runs.
+`npm install`, `npm run sandbox`, and `npm run package` each refresh it
+automatically; `npm run vendor` does it on demand. The copied files are build
+output and are not committed.
 
 ---
 
@@ -292,9 +307,12 @@ contact, and the placeholder icon.
 ## Design notes
 
 - **No runtime dependencies.** The library modules are plain ES5 CommonJS,
-  adding a few kilobytes to the Tags library. The views are hand-written HTML
-  with no component framework, so the package stays small and needs no build
-  step.
+  adding a few kilobytes to the Tags library. Coral Spectrum ships in the
+  package for the views only, so nothing about the design system reaches the
+  pages your tags run on.
+- **Self-contained views.** Coral is vendored rather than loaded from a CDN, and
+  the views are plain HTML custom elements with no bundler, so what you read in
+  `src/view` is exactly what ships.
 - **Conversion happens once, in the runtime.** Downstream rules, actions, and
   XDM mappings all read the already-typed value.
 - **Nothing is guessed silently.** Every ambiguous input has a setting, and the
@@ -312,7 +330,8 @@ Issues and pull requests are welcome at
 <https://github.com/andylunsford/FriendlyFormat>. Please run `npm test` and
 `npm run validate` before opening a pull request, and add unit tests for any new
 conversion behavior. Changes to the runtime modules should stay ES5 and
-dependency free.
+dependency free, views should use Coral Spectrum components rather than custom
+controls, and `src/view/vendor/` should never be committed.
 
 ---
 
