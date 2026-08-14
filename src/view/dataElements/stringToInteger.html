@@ -62,6 +62,8 @@
     <fieldset>
       <legend>Edge cases</legend>
 
+      <div id="defaultValueNote"></div>
+
       <div class="ff-field">
         <label for="invalidBehavior">
           When the value cannot be parsed as a number
@@ -92,14 +94,6 @@
           <option value="zero">Return 0</option>
         </select>
       </div>
-
-      <p class="ff-note">
-        Tags substitutes the data element's Default Value whenever this data
-        element returns <code>null</code> or <code>undefined</code>. To send a
-        real <code>null</code> to Adobe Experience Platform, choose
-        <em>Return null</em> and leave the Default Value field on this data
-        element empty.
-      </p>
     </fieldset>
 
     <script src="https://assets.adobedtm.com/activation/reactor/extensionbridge/extensionbridge.min.js"></script>
@@ -110,6 +104,7 @@
 
         var ff = window.friendlyFormat;
 
+        ff.renderDefaultValueNote('defaultValueNote');
         ff.wireDataElementButton('sourceValue', 'sourceValueButton');
 
         window.extensionBridge.register({

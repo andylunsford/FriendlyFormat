@@ -10,6 +10,64 @@ window.friendlyFormat = (function () {
   };
 
   /**
+   * Renders the Default Value warning shared by every Friendly Format type.
+   *
+   * Tags post-processes a data element's result before anything downstream sees
+   * it: a `null` or `undefined` result is swapped for the Default Value, and the
+   * Force lowercase and Clean text options coerce the result back into a string.
+   * Either one quietly defeats the edge-case settings above, so the guidance
+   * lives right next to them.
+   *
+   * @param {string} containerId Element that receives the warning markup.
+   */
+  var renderDefaultValueNote = function (containerId) {
+    var container = byId(containerId);
+
+    if (!container) {
+      return;
+    }
+
+    container.className = 'ff-callout';
+    container.innerHTML = [
+      '<h3 class="ff-callout-title">Leave the Default Value field empty</h3>',
+      '<p>',
+      'Tags replaces this data element&rsquo;s result with its <strong>Default ',
+      'Value</strong> whenever the result is <code>null</code> or ',
+      '<code>undefined</code>. Setting a Default Value therefore overrides the ',
+      'choices above: <em>Return null</em> stops returning null, and ',
+      '<em>Use the data element&rsquo;s default value</em> stops leaving the ',
+      'field unset.',
+      '</p>',
+      '<ul>',
+      '<li>',
+      '<strong>To send a real <code>null</code></strong>, which clears the field ',
+      'in Adobe Experience Platform: choose <em>Return null</em> and leave ',
+      'Default Value empty.',
+      '</li>',
+      '<li>',
+      '<strong>To omit the field entirely</strong>, leaving whatever is already ',
+      'in the profile untouched: choose <em>Use the data element&rsquo;s default ',
+      'value</em> and leave Default Value empty. The result is ',
+      '<code>undefined</code>, and the Web SDK drops undefined keys from the ',
+      'payload.',
+      '</li>',
+      '<li>',
+      '<strong>A Default Value is only safe</strong> when it is a genuine ',
+      'fallback of the right type. Anything you type in that field arrives as a ',
+      '<em>string</em>, so <code>false</code> becomes <code>"false"</code> and ',
+      '<code>0</code> becomes <code>"0"</code>, which fails validation against a ',
+      'Boolean or numeric XDM field. Prefer the edge-case settings above.',
+      '</li>',
+      '</ul>',
+      '<p>',
+      'For the same reason, leave <strong>Force lowercase</strong> and ',
+      '<strong>Clean text</strong> switched off. Both are string operations and ',
+      'both convert the typed result back into a string.',
+      '</p>'
+    ].join('');
+  };
+
+  /**
    * Wires an "Add data element" button to the Tags data element selector. The
    * selected data element is inserted as a `%token%` at the cursor.
    */
@@ -121,6 +179,7 @@ window.friendlyFormat = (function () {
 
   return {
     byId: byId,
+    renderDefaultValueNote: renderDefaultValueNote,
     wireDataElementButton: wireDataElementButton,
     parseList: parseList,
     formatList: formatList,

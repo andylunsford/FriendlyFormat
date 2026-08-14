@@ -10,6 +10,8 @@
   --ff-border-strong: #8f8f8f;
   --ff-accent: #1473e6;
   --ff-error: #d7373f;
+  --ff-warning: #e68619;
+  --ff-warning-surface: #fff8f0;
   --ff-surface: #ffffff;
 }
 
@@ -63,6 +65,50 @@ legend {
   border-left: 3px solid var(--ff-accent);
   background: #f4f8fe;
   color: var(--ff-muted);
+  font-size: 12px;
+}
+
+/* Warning callout, used for the Default Value guidance in every view. */
+.ff-callout {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  max-width: 620px;
+  border: 1px solid #f0c17b;
+  border-left: 4px solid var(--ff-warning);
+  border-radius: 4px;
+  background: var(--ff-warning-surface);
+  font-size: 13px;
+}
+
+.ff-callout-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ff-callout p {
+  margin: 0 0 8px;
+}
+
+.ff-callout p:last-child,
+.ff-callout ul:last-child {
+  margin-bottom: 0;
+}
+
+.ff-callout ul {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+
+.ff-callout li {
+  margin-bottom: 6px;
+}
+
+.ff-callout code {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.06);
+  font-family: "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
 }
 
