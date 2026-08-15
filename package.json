@@ -1,5 +1,5 @@
 {
-  "name": "friendly-format",
+  "name": "andylunsford-friendly-format",
   "version": "1.0.0",
   "description": "Adobe Experience Platform Data Collection (Tags) extension providing string to Boolean, integer, and double data element types.",
   "private": true,

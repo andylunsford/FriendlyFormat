@@ -297,7 +297,7 @@ output and are not committed.
 ## Packaging and submission
 
 ```bash
-npm run package   # builds package-friendly-format-<version>.zip
+npm run package   # builds package-andylunsford-friendly-format-<version>.zip
 npm run upload    # uploads the zip using Adobe OAuth Server-to-Server credentials
 npm run release   # moves the uploaded version from development to private
 ```

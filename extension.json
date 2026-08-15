@@ -1,6 +1,6 @@
 {
   "platform": "web",
-  "name": "friendly-format",
+  "name": "andylunsford-friendly-format",
   "displayName": "Friendly Format",
   "version": "1.0.0",
   "description": "Data element types that coerce strings into the primitive types Adobe Experience Platform expects: Boolean, integer, and double. Each type gives you explicit control over null, empty, whitespace, and unparseable input so XDM ingestion does not reject or silently mistype your data.",
