@@ -282,7 +282,7 @@ src/view/vendor/coral/          Coral Spectrum runtime, copied in at build time 
 scripts/vendor-coral.js         Copies Coral Spectrum out of node_modules
 resources/icons/                Extension icon
 tests/                          Unit tests, plus a manifest/constants/views consistency check
-docs/                           Option reference and submission checklist
+docs/                           Option reference, submission checklist, UI framework assessment
 .sandbox/container.js           Sample data elements for local sandbox testing
 ```
 
@@ -328,7 +328,9 @@ contact, and the placeholder icon.
   and dropdown behavior to write by hand. Coral Spectrum sits between them —
   Spectrum-styled components that behave on their own, with no build step. The
   trade is package size and an older Spectrum generation. Migrating to React
-  Spectrum is the move if the views ever grow stateful.
+  Spectrum is the move if the views ever grow stateful —
+  [`docs/ui-framework.md`](docs/ui-framework.md) has the measured sizes and what
+  each alternative would cost.
 - **One source of truth for enums.** Every value the manifest restricts is named
   in [`src/lib/helpers/constants.js`](src/lib/helpers/constants.js), and
   [`tests/manifest.test.js`](tests/manifest.test.js) checks the manifest, the
