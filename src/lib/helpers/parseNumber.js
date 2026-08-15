@@ -4,6 +4,11 @@
  * Shared numeric parsing for the integer and double data element types.
  */
 
+var constants = require('./constants');
+
+var DECIMAL_HANDLING = constants.DECIMAL_HANDLING;
+var DECIMAL_SEPARATOR = constants.DECIMAL_SEPARATOR;
+
 // A complete, well-formed decimal number (optionally in exponent notation).
 var STRICT_NUMBER = /^[+-]?(\d+(\.\d+)?|\.\d+)([eE][+-]?\d+)?$/;
 
@@ -25,7 +30,7 @@ var STRICT_NUMBER = /^[+-]?(\d+(\.\d+)?|\.\d+)([eE][+-]?\d+)?$/;
 var normalize = function (stringValue, options) {
   var value = stringValue;
 
-  if (options.decimalSeparator === 'comma') {
+  if (options.decimalSeparator === DECIMAL_SEPARATOR.COMMA) {
     // Periods are grouping separators in this notation, commas are the point.
     value = value.replace(/\./g, '').replace(/,/g, '.');
   }
@@ -79,14 +84,14 @@ var toInteger = function (value, decimalHandling) {
   }
 
   switch (decimalHandling) {
-    case 'truncate':
+    case DECIMAL_HANDLING.TRUNCATE:
       // Math.trunc is ES2015; this keeps the runtime library ES5-safe.
       return value < 0 ? Math.ceil(value) : Math.floor(value);
-    case 'floor':
+    case DECIMAL_HANDLING.FLOOR:
       return Math.floor(value);
-    case 'ceil':
+    case DECIMAL_HANDLING.CEIL:
       return Math.ceil(value);
-    case 'invalid':
+    case DECIMAL_HANDLING.INVALID:
       return NaN;
     default:
       return Math.round(value);

@@ -275,13 +275,13 @@ the first time.
 ```
 extension.json                  Manifest: the three data element types and their setting schemas
 src/lib/dataElements/           Runtime library modules, one per type (CommonJS, ES5)
-src/lib/helpers/                Shared edge-case and numeric-parsing logic
+src/lib/helpers/                Shared edge-case logic, numeric parsing, and the enum constants
 src/view/dataElements/          Configuration views shown in the Tags UI
 src/view/scripts|styles/        Shared view helpers and layout
 src/view/vendor/coral/          Coral Spectrum runtime, copied in at build time (not committed)
 scripts/vendor-coral.js         Copies Coral Spectrum out of node_modules
 resources/icons/                Extension icon
-tests/                          Unit tests for the library modules
+tests/                          Unit tests, plus a manifest/constants/views consistency check
 docs/                           Option reference and submission checklist
 .sandbox/container.js           Sample data elements for local sandbox testing
 ```
@@ -319,6 +319,21 @@ contact, and the placeholder icon.
 - **Self-contained views.** Coral is vendored rather than loaded from a CDN, and
   the views are plain HTML custom elements with no bundler, so what you read in
   `src/view` is exactly what ships.
+- **Why Coral Spectrum.** Adobe's guidance names three reasonable UI choices:
+  React Spectrum (the official framework for the Tags UI, and what
+  [reactor-extension-core](https://github.com/adobe/reactor-extension-core) uses
+  today), Spectrum CSS with vanilla JavaScript, or a plain framework of your
+  own. React is aimed at UIs that re-render in response to state, which these
+  stateless forms do not; Spectrum CSS is styling only, leaving the tag entry
+  and dropdown behavior to write by hand. Coral Spectrum sits between them —
+  Spectrum-styled components that behave on their own, with no build step. The
+  trade is package size and an older Spectrum generation. Migrating to React
+  Spectrum is the move if the views ever grow stateful.
+- **One source of truth for enums.** Every value the manifest restricts is named
+  in [`src/lib/helpers/constants.js`](src/lib/helpers/constants.js), and
+  [`tests/manifest.test.js`](tests/manifest.test.js) checks the manifest, the
+  constants, and the options the views offer against each other, so the copies
+  cannot drift apart.
 - **Conversion happens once, in the runtime.** Downstream rules, actions, and
   XDM mappings all read the already-typed value.
 - **Nothing is guessed silently.** Every ambiguous input has a setting, and the

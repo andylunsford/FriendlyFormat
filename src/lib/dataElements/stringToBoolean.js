@@ -1,9 +1,10 @@
 'use strict';
 
 var behaviors = require('../helpers/behaviors');
+var constants = require('../helpers/constants');
 
-var DEFAULT_TRUE_VALUES = ['true', 'yes', 'y', '1', 'on', 't'];
-var DEFAULT_FALSE_VALUES = ['false', 'no', 'n', '0', 'off', 'f'];
+var DEFAULT_TRUE_VALUES = constants.DEFAULT_TRUE_VALUES;
+var DEFAULT_FALSE_VALUES = constants.DEFAULT_FALSE_VALUES;
 
 var normalizeList = function (list, fallback, caseSensitive) {
   var source = Array.isArray(list) && list.length ? list : fallback;
@@ -86,7 +87,7 @@ module.exports = function (settings) {
     return false;
   }
 
-  if (settings.unmatchedBehavior === 'truthy') {
+  if (settings.unmatchedBehavior === constants.BEHAVIOR.TRUTHY) {
     return isTruthy(source.value);
   }
 

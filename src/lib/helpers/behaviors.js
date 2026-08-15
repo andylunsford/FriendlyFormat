@@ -11,6 +11,8 @@
  * what the views tell authors to do.
  */
 
+var BEHAVIOR = require('./constants').BEHAVIOR;
+
 var isNullish = function (value) {
   return value === null || value === undefined;
 };
@@ -23,13 +25,13 @@ var isNullish = function (value) {
  */
 var resolveBehavior = function (behavior) {
   switch (behavior) {
-    case 'true':
+    case BEHAVIOR.TRUE:
       return true;
-    case 'false':
+    case BEHAVIOR.FALSE:
       return false;
-    case 'zero':
+    case BEHAVIOR.ZERO:
       return 0;
-    case 'null':
+    case BEHAVIOR.NULL:
       return null;
     default:
       // `omit`, an absent setting, or anything unrecognized: return nothing, so
