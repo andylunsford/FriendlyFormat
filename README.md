@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="resources/icons/friendly-format.svg" alt="Friendly Format" width="88" height="88">
-
-# Friendly Format
+<img src="docs/assets/friendly-format-logo.png" alt="FriendlyFormat" width="300">
 
 **Type conversion data elements for Adobe Experience Platform Data Collection**
 
@@ -280,7 +278,8 @@ src/view/dataElements/          Configuration views shown in the Tags UI
 src/view/scripts|styles/        Shared view helpers and layout
 src/view/vendor/coral/          Coral Spectrum runtime, built at package time (not committed)
 scripts/vendor-coral.js         Copies Coral Spectrum in, trimming its icon sprite to what the views use
-resources/icons/                Extension icon
+resources/icons/                Extension icon shown in the Tags catalog
+docs/assets/                    Project logo used by this README
 tests/                          Unit tests, plus a manifest/constants/views consistency check
 docs/                           Option reference, submission checklist, UI framework assessment
 .sandbox/container.js           Sample data elements for local sandbox testing
