@@ -278,8 +278,8 @@ src/lib/dataElements/           Runtime library modules, one per type (CommonJS,
 src/lib/helpers/                Shared edge-case logic, numeric parsing, and the enum constants
 src/view/dataElements/          Configuration views shown in the Tags UI
 src/view/scripts|styles/        Shared view helpers and layout
-src/view/vendor/coral/          Coral Spectrum runtime, copied in at build time (not committed)
-scripts/vendor-coral.js         Copies Coral Spectrum out of node_modules
+src/view/vendor/coral/          Coral Spectrum runtime, built at package time (not committed)
+scripts/vendor-coral.js         Copies Coral Spectrum in, trimming its icon sprite to what the views use
 resources/icons/                Extension icon
 tests/                          Unit tests, plus a manifest/constants/views consistency check
 docs/                           Option reference, submission checklist, UI framework assessment
@@ -287,10 +287,16 @@ docs/                           Option reference, submission checklist, UI frame
 ```
 
 The views load Coral Spectrum from the package itself rather than a CDN, so
-`src/view/vendor/coral` has to exist before the sandbox or the packager runs.
-`npm install`, `npm run sandbox`, and `npm run package` each refresh it
-automatically; `npm run vendor` does it on demand. The copied files are build
-output and are not committed.
+`src/view/vendor/coral` has to exist before the sandbox, the tests, or the
+packager run. `npm install`, `npm test`, `npm run sandbox`, and `npm run package`
+each refresh it automatically; `npm run vendor` does it on demand. The output is
+not committed.
+
+Coral's workflow icon sprite is not copied verbatim: it ships close to two
+thousand icons and the views reference one, so the sprite is rebuilt from the
+`icon="…"` attributes found in `src/view`. That is 45% of the packaged size.
+`tests/icons.test.js` checks the sprite and the views against each other in both
+directions, so an icon added to a view cannot silently render as a blank.
 
 ---
 
