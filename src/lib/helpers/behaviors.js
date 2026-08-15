@@ -4,10 +4,11 @@
  * Shared handling for the "what should I return when the input is not a clean
  * value?" settings used by every Friendly Format data element type.
  *
- * Note on `null` vs `default`: Tags replaces a data element result of `null` or
- * `undefined` with the Default Value configured on the data element, when one is
- * configured. `null` therefore reaches the page as `null` only when the data
- * element has no Default Value set.
+ * Note on `null` vs `omit`: Tags replaces a result of `null` or `undefined` with
+ * the data element's Default Value whenever one is present, and that value is
+ * always a string — a blank Default Value yields `""`. Both behaviors therefore
+ * only survive to the page when the Default Value field is left empty, which is
+ * what the views tell authors to do.
  */
 
 var isNullish = function (value) {
@@ -17,7 +18,7 @@ var isNullish = function (value) {
 /**
  * Turns a behavior setting into the value the data element should return.
  *
- * @param {string} behavior One of `true`, `false`, `zero`, `null`, `default`.
+ * @param {string} behavior One of `true`, `false`, `zero`, `null`, `omit`.
  * @returns {boolean|number|null|undefined}
  */
 var resolveBehavior = function (behavior) {
@@ -31,8 +32,8 @@ var resolveBehavior = function (behavior) {
     case 'null':
       return null;
     default:
-      // `default`, or an unrecognized/absent setting: let Tags fall back to the
-      // data element's configured Default Value.
+      // `omit`, an absent setting, or anything unrecognized: return nothing, so
+      // the Web SDK leaves the field out of the payload.
       return undefined;
   }
 };

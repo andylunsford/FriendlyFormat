@@ -87,9 +87,9 @@ Matches the input against a list of true values and a list of false values.
 | Values treated as false | `false, no, n, 0, off, f` |
 | Trim surrounding whitespace | on |
 | Match case sensitively | off |
-| When the value matches neither list | use the data element's default value |
-| When the value is empty or only whitespace | use the data element's default value |
-| When the value is null or undefined | use the data element's default value |
+| When the value matches neither list | return nothing (undefined) |
+| When the value is empty or only whitespace | return nothing (undefined) |
+| When the value is null or undefined | return nothing (undefined) |
 
 ```text
 "Yes"      → true          "off"    → false
@@ -115,9 +115,9 @@ Parses a number, then reduces it to a whole number.
 | Strip non-numeric characters | off |
 | Require the whole value to be numeric | on |
 | When the value has a decimal part | round |
-| When the value cannot be parsed | use the data element's default value |
-| When the value is empty or only whitespace | use the data element's default value |
-| When the value is null or undefined | use the data element's default value |
+| When the value cannot be parsed | return nothing (undefined) |
+| When the value is empty or only whitespace | return nothing (undefined) |
+| When the value is null or undefined | return nothing (undefined) |
 
 ```text
 "42"      → 42            "-12.6" → -13   (round)
@@ -139,9 +139,9 @@ Parses a number and optionally rounds it to a fixed number of decimal places.
 | Require the whole value to be numeric | on |
 | Decimal separator | period |
 | Decimal places | unset, full precision |
-| When the value cannot be parsed | use the data element's default value |
-| When the value is empty or only whitespace | use the data element's default value |
-| When the value is null or undefined | use the data element's default value |
+| When the value cannot be parsed | return nothing (undefined) |
+| When the value is empty or only whitespace | return nothing (undefined) |
+| When the value is null or undefined | return nothing (undefined) |
 
 ```text
 "19.99"      → 19.99      "1.234,56" → 1234.56  (comma notation)
@@ -164,26 +164,32 @@ Every type answers three questions explicitly, rather than guessing:
 > [!WARNING]
 > **Leave the data element's Default Value field empty.**
 >
-> Tags replaces a data element's result with its **Default Value** whenever that
-> result is `null` or `undefined`. Filling that field overrides the settings
-> above: *Return null* stops returning null, and *Use the data element's default
-> value* stops leaving the field unset.
+> Tags swaps a data element's result for its **Default Value** whenever that
+> result is `null` or `undefined`. The field is free text, so what comes back is
+> a **string** — and a Default Value that is merely *blank* still counts:
 >
-> It is also a type hazard. The Default Value field is free text, so whatever
-> you type arrives as a **string** — `false` becomes `"false"` and `0` becomes
-> `"0"`, which is exactly the mistyping this extension exists to prevent.
+> | Default Value | Result of a `null`/`undefined` conversion |
+> | --- | --- |
+> | empty | `undefined`, field omitted ✅ |
+> | blank but saved | `""` — a string ❌ |
+> | `false` | `"false"` — a string ❌ |
+> | `0` | `"0"` — a string ❌ |
 >
-> For the same reason, leave **Force lowercase** and **Clean text** switched
-> off. Both are string operations, and both convert a typed result back into a
-> string.
+> Set the fallback with the edge-case settings above instead, where it keeps its
+> type.
+>
+> **Clean text** and **Force lowercase** do *not* stringify a typed result —
+> Turbine guards both with `typeof value === 'string'`, so a Boolean or number
+> passes through untouched. Leave them off anyway: the only value they can reach
+> here is a string a Default Value substituted in.
 
 Choose deliberately between the two clean outcomes:
 
 - **`null`** — the field is sent with a null value, which **clears** it in
   Platform. Choose *Return null* and leave Default Value empty.
 - **`undefined`** — the field is **omitted** from the payload, leaving any
-  existing profile value untouched. Choose *Use the data element's default
-  value* and leave Default Value empty.
+  existing profile value untouched. Choose *Return nothing (undefined)* and
+  leave Default Value empty.
 
 This warning is repeated inside each data element view, next to the settings it
 affects.
@@ -218,7 +224,7 @@ Converting a `"Yes"` / `"No"` login flag into a real Boolean:
    which inserts `%rawLoggedIn%`.
 4. **Decide the edge cases.** For a login flag, "not logged in unless told
    otherwise" is usually right: set empty and null to **Return false**, and
-   leave unmatched values on **Use the data element's default value** so a
+   leave unmatched values on **Return nothing (undefined)** so a
    surprise value shows up as missing rather than as a confident `false`.
 5. **Leave Default Value empty.** See the warning above.
 6. **Map it.** In your XDM object, map `%loggedIn%` to the Boolean field.

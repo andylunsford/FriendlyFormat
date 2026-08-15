@@ -78,10 +78,17 @@ test('applies the unmatched behavior', function () {
     null
   );
   assert.strictEqual(
-    stringToBoolean({ sourceValue: 'maybe', unmatchedBehavior: 'default' }),
+    stringToBoolean({ sourceValue: 'maybe', unmatchedBehavior: 'omit' }),
     undefined
   );
   assert.strictEqual(stringToBoolean({ sourceValue: 'maybe' }), undefined);
+
+  // Anything unrecognized returns nothing rather than guessing, which also
+  // keeps settings written against an older behavior name working.
+  assert.strictEqual(
+    stringToBoolean({ sourceValue: 'maybe', unmatchedBehavior: 'default' }),
+    undefined
+  );
 });
 
 test('converts unmatched values by truthiness when asked', function () {

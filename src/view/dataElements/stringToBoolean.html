@@ -37,7 +37,7 @@
             <code>%loggedIn%</code>, or type a literal value.
           </span>
           <span class="ff-error" id="sourceValueError" hidden>
-            Provide a value to convert.
+            Please specify a value to convert.
           </span>
         </div>
       </section>
@@ -73,7 +73,7 @@
             remove it.
           </span>
           <span class="ff-error" id="trueValuesError" hidden>
-            Add at least one value treated as true.
+            Please add at least one value treated as true.
           </span>
         </div>
 
@@ -99,7 +99,7 @@
           </div>
           <coral-taglist id="falseValues" class="ff-taglist"></coral-taglist>
           <span class="ff-error" id="falseValuesError" hidden>
-            Add at least one value treated as false.
+            Please add at least one value treated as false.
           </span>
           <span class="ff-error" id="overlapError" hidden>
             A value cannot be treated as both true and false.
@@ -136,15 +136,17 @@
             When the value matches neither list
           </label>
           <coral-select id="unmatchedBehavior" class="ff-select">
-            <coral-select-item value="default">
-              Use the data element's default value
+            <coral-select-item value="omit">
+              Return nothing (undefined)
             </coral-select-item>
             <coral-select-item value="truthy">
               Convert by truthiness
             </coral-select-item>
             <coral-select-item value="true">Return true</coral-select-item>
             <coral-select-item value="false">Return false</coral-select-item>
-            <coral-select-item value="null">Return null</coral-select-item>
+            <coral-select-item value="null">
+              Return null (clears the field)
+            </coral-select-item>
           </coral-select>
           <span class="ff-hint">
             Truthiness treats non-zero numbers and any other non-empty text as
@@ -157,12 +159,14 @@
             When the value is empty or only whitespace
           </label>
           <coral-select id="emptyBehavior" class="ff-select">
-            <coral-select-item value="default">
-              Use the data element's default value
+            <coral-select-item value="omit">
+              Return nothing (undefined)
             </coral-select-item>
             <coral-select-item value="false">Return false</coral-select-item>
             <coral-select-item value="true">Return true</coral-select-item>
-            <coral-select-item value="null">Return null</coral-select-item>
+            <coral-select-item value="null">
+              Return null (clears the field)
+            </coral-select-item>
           </coral-select>
         </div>
 
@@ -171,12 +175,14 @@
             When the value is null or undefined
           </label>
           <coral-select id="nullBehavior" class="ff-select">
-            <coral-select-item value="default">
-              Use the data element's default value
+            <coral-select-item value="omit">
+              Return nothing (undefined)
             </coral-select-item>
             <coral-select-item value="false">Return false</coral-select-item>
             <coral-select-item value="true">Return true</coral-select-item>
-            <coral-select-item value="null">Return null</coral-select-item>
+            <coral-select-item value="null">
+              Return null (clears the field)
+            </coral-select-item>
           </coral-select>
         </div>
       </section>
@@ -224,12 +230,9 @@
 
             ff.setChecked('trimWhitespace', settings.trimWhitespace, true);
             ff.setChecked('caseSensitive', settings.caseSensitive, false);
-            ff.setValue(
-              'unmatchedBehavior',
-              settings.unmatchedBehavior || 'default'
-            );
-            ff.setValue('emptyBehavior', settings.emptyBehavior || 'default');
-            ff.setValue('nullBehavior', settings.nullBehavior || 'default');
+            ff.setSelect('unmatchedBehavior', settings.unmatchedBehavior, 'omit');
+            ff.setSelect('emptyBehavior', settings.emptyBehavior, 'omit');
+            ff.setSelect('nullBehavior', settings.nullBehavior, 'omit');
           },
 
           getSettings: function () {

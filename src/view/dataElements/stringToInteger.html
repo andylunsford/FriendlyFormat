@@ -37,7 +37,7 @@
             <code>%cartQuantity%</code>, or type a literal value.
           </span>
           <span class="ff-error" id="sourceValueError" hidden>
-            Provide a value to convert.
+            Please specify a value to convert.
           </span>
         </div>
       </section>
@@ -102,10 +102,12 @@
             When the value cannot be parsed as a number
           </label>
           <coral-select id="invalidBehavior" class="ff-select">
-            <coral-select-item value="default">
-              Use the data element's default value
+            <coral-select-item value="omit">
+              Return nothing (undefined)
             </coral-select-item>
-            <coral-select-item value="null">Return null</coral-select-item>
+            <coral-select-item value="null">
+              Return null (clears the field)
+            </coral-select-item>
             <coral-select-item value="zero">Return 0</coral-select-item>
           </coral-select>
         </div>
@@ -115,10 +117,12 @@
             When the value is empty or only whitespace
           </label>
           <coral-select id="emptyBehavior" class="ff-select">
-            <coral-select-item value="default">
-              Use the data element's default value
+            <coral-select-item value="omit">
+              Return nothing (undefined)
             </coral-select-item>
-            <coral-select-item value="null">Return null</coral-select-item>
+            <coral-select-item value="null">
+              Return null (clears the field)
+            </coral-select-item>
             <coral-select-item value="zero">Return 0</coral-select-item>
           </coral-select>
         </div>
@@ -128,10 +132,12 @@
             When the value is null or undefined
           </label>
           <coral-select id="nullBehavior" class="ff-select">
-            <coral-select-item value="default">
-              Use the data element's default value
+            <coral-select-item value="omit">
+              Return nothing (undefined)
             </coral-select-item>
-            <coral-select-item value="null">Return null</coral-select-item>
+            <coral-select-item value="null">
+              Return null (clears the field)
+            </coral-select-item>
             <coral-select-item value="zero">Return 0</coral-select-item>
           </coral-select>
         </div>
@@ -158,13 +164,10 @@
             ff.setChecked('trimWhitespace', settings.trimWhitespace, true);
             ff.setChecked('stripNonNumeric', settings.stripNonNumeric, false);
             ff.setChecked('strictParsing', settings.strictParsing, true);
-            ff.setValue('decimalHandling', settings.decimalHandling || 'round');
-            ff.setValue(
-              'invalidBehavior',
-              settings.invalidBehavior || 'default'
-            );
-            ff.setValue('emptyBehavior', settings.emptyBehavior || 'default');
-            ff.setValue('nullBehavior', settings.nullBehavior || 'default');
+            ff.setSelect('decimalHandling', settings.decimalHandling, 'round');
+            ff.setSelect('invalidBehavior', settings.invalidBehavior, 'omit');
+            ff.setSelect('emptyBehavior', settings.emptyBehavior, 'omit');
+            ff.setSelect('nullBehavior', settings.nullBehavior, 'omit');
           },
 
           getSettings: function () {

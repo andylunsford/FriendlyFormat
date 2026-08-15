@@ -22,10 +22,15 @@ window.friendlyFormat = (function () {
    * Renders the Default Value warning shared by every Friendly Format type.
    *
    * Tags post-processes a data element's result before anything downstream sees
-   * it: a `null` or `undefined` result is swapped for the Default Value, and the
-   * Force lowercase and Clean text options coerce the result back into a string.
-   * Either one quietly defeats the edge-case settings, so the guidance lives
-   * right next to them.
+   * it. Verified against the Turbine runtime:
+   *
+   *   if (value == null && dataDef.defaultValue != null) value = dataDef.defaultValue;
+   *   if (typeof value === 'string') { cleanText; forceLowerCase; }
+   *
+   * So the Default Value — free text, therefore always a string, and present
+   * even when the author leaves it blank — is what turns a typed result into a
+   * string. Clean text and Force lowercase are string-guarded and never touch a
+   * Boolean or a number, but they do reshape a substituted Default Value.
    *
    * @param {string} containerId Element that receives the warning.
    */
@@ -38,41 +43,34 @@ window.friendlyFormat = (function () {
 
     container.innerHTML = [
       '<coral-alert variant="warning" size="L" class="ff-alert">',
-      '<coral-alert-header>Leave the Default Value field empty</coral-alert-header>',
+      '<coral-alert-header>',
+      'Leave Default Value empty on the left',
+      '</coral-alert-header>',
       '<coral-alert-content>',
       '<p>',
-      'Tags replaces this data element&rsquo;s result with its <b>Default ',
-      'Value</b> whenever the result is <code>null</code> or ',
-      '<code>undefined</code>. Setting a Default Value therefore overrides the ',
-      'choices below: <i>Return null</i> stops returning null, and ',
-      '<i>Use the data element&rsquo;s default value</i> stops leaving the ',
-      'field unset.',
+      'Tags swaps this data element&rsquo;s result for its <b>Default Value</b> ',
+      'whenever the result is <code>null</code> or <code>undefined</code>. That ',
+      'field is free text, so what comes back is a <b>string</b>: ',
+      '<code>false</code> arrives as <code>"false"</code> and <code>0</code> as ',
+      '<code>"0"</code>. Even a blank Default Value counts, turning the result ',
+      'into an empty string. Any of those fail validation on a Boolean or ',
+      'numeric XDM field.',
       '</p>',
       '<ul>',
       '<li>',
-      '<b>To send a real <code>null</code></b>, which clears the field in Adobe ',
-      'Experience Platform: choose <i>Return null</i> and leave Default Value ',
-      'empty.',
+      'Leave <b>Default Value</b> empty and set the fallback with the options ',
+      'below, where it keeps its type.',
       '</li>',
       '<li>',
-      '<b>To omit the field entirely</b>, leaving whatever is already in the ',
-      'profile untouched: choose <i>Use the data element&rsquo;s default ',
-      'value</i> and leave Default Value empty. The result is ',
-      '<code>undefined</code>, and the Web SDK drops undefined keys from the ',
-      'payload.',
-      '</li>',
-      '<li>',
-      '<b>A Default Value is only safe</b> when it is a genuine fallback of the ',
-      'right type. Anything you type in that field arrives as a <i>string</i>, ',
-      'so <code>false</code> becomes <code>"false"</code> and <code>0</code> ',
-      'becomes <code>"0"</code>, which fails validation against a Boolean or ',
-      'numeric XDM field. Prefer the edge-case settings below.',
+      'Leave <b>Clean text</b> and <b>Force lowercase</b> off. Tags applies them ',
+      'to strings only, so they never touch a Boolean or number result &mdash; ',
+      'but they will reshape a string that a Default Value put there.',
       '</li>',
       '</ul>',
       '<p>',
-      'For the same reason, leave <b>Force lowercase</b> and <b>Clean text</b> ',
-      'switched off. Both are string operations and both convert the typed ',
-      'result back into a string.',
+      'With Default Value empty, <i>Return nothing</i> leaves the field out of ',
+      'the XDM payload and <i>Return null</i> clears it in Adobe Experience ',
+      'Platform.',
       '</p>',
       '</coral-alert-content>',
       '</coral-alert>'
@@ -249,6 +247,35 @@ window.friendlyFormat = (function () {
     return element ? String(element.value) : '';
   };
 
+  /**
+   * Selects an option, falling back when the saved setting names an option this
+   * version of the view no longer offers. Without this a renamed setting would
+   * leave the select blank and save an empty string.
+   *
+   * @param {string} id
+   * @param {*} value Saved setting, possibly absent.
+   * @param {string} fallback Option value to use when `value` does not match.
+   */
+  var setSelect = function (id, value, fallback) {
+    var element = byId(id);
+
+    if (!element) {
+      return;
+    }
+
+    var options = element.querySelectorAll('coral-select-item');
+    var match = false;
+
+    for (var i = 0; i < options.length; i++) {
+      if (options[i].getAttribute('value') === value) {
+        match = true;
+        break;
+      }
+    }
+
+    element.value = match ? value : fallback;
+  };
+
   /** Reads a checkbox, falling back to the type's documented default. */
   var setChecked = function (id, value, defaultValue) {
     var element = byId(id);
@@ -307,6 +334,7 @@ window.friendlyFormat = (function () {
     markInvalid: markInvalid,
     renderDefaultValueNote: renderDefaultValueNote,
     setChecked: setChecked,
+    setSelect: setSelect,
     setValue: setValue,
     showError: showError,
     validateSourceValue: validateSourceValue,
