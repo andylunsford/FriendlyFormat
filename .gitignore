@@ -5,15 +5,19 @@ node_modules/
 # Build artifacts
 package-*.zip
 src/view/coral/
-.sandbox/files/
-.sandbox/launch-*.js
 coverage/
 dist/
+
+# Local tooling and working notes, kept out of the repository
+.sandbox/
+package-lock.json
+.env.example
+docs/*.md
+docs/assets/*.md
 
 # Credentials used by reactor-uploader and reactor-releaser. Never commit these.
 .env
 .env.*
-!.env.example
 *.pem
 *.key
 

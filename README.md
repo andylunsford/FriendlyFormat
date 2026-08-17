@@ -9,7 +9,7 @@ that XDM actually expects — in the Tags runtime, before the data ever leaves
 the page.
 
 [![Platform](https://img.shields.io/badge/platform-web-1473E6)](https://experienceleague.adobe.com/en/docs/experience-platform/tags/extension-dev/overview)
-[![Extension version](https://img.shields.io/badge/version-1.0.0-2680EB)](CHANGELOG.md)
+[![Extension version](https://img.shields.io/badge/version-1.0.0-2680EB)](https://github.com/andylunsford/FriendlyFormat/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-6E6E6E)](LICENSE)
 [![UI](https://img.shields.io/badge/UI-Coral%20Spectrum-E34850)](https://opensource.adobe.com/coral-spectrum/)
 [![Dependencies](https://img.shields.io/badge/runtime%20dependencies-none-268E6C)](#design-notes)
@@ -270,7 +270,7 @@ With the sandbox running:
 - **Views** — open <https://localhost:4000> and pick a data element type to
   exercise the configuration UI, including validation and saved settings.
 - **Runtime** — open <https://localhost:4000/libSandbox.html> and evaluate the
-  sample data elements defined in [`.sandbox/container.js`](.sandbox/container.js):
+  sample data elements defined in `.sandbox/container.js`:
 
   ```js
   localStorage.setItem('loggedIn', 'Yes');
@@ -283,7 +283,9 @@ With the sandbox running:
   ```
 
 The sandbox serves over a self-signed certificate, so accept the browser warning
-the first time.
+the first time. `.sandbox/` is local-only and not tracked; `npx reactor-sandbox
+init` recreates it, and `container.js` is where the sample data elements above
+are defined.
 
 ---
 
@@ -300,8 +302,6 @@ scripts/vendor-coral.js         Copies Coral Spectrum in, trimming its icon spri
 resources/icons/                Extension icon shown in the Tags catalog
 docs/assets/                    Project logo used by this README
 tests/                          Unit tests, plus a manifest/constants/views consistency check
-docs/                           Option reference, submission checklist, UI framework assessment
-.sandbox/container.js           Sample data elements for local sandbox testing
 ```
 
 Everything under `src/view` stays exactly one directory deep. That is a hosting
