@@ -9,7 +9,7 @@ that XDM actually expects — in the Tags runtime, before the data ever leaves
 the page.
 
 [![Platform](https://img.shields.io/badge/platform-web-1473E6)](https://experienceleague.adobe.com/en/docs/experience-platform/tags/extension-dev/overview)
-[![Extension version](https://img.shields.io/badge/version-1.0.2-2680EB)](CHANGELOG.md)
+[![Extension version](https://img.shields.io/badge/version-1.0.0-2680EB)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-6E6E6E)](LICENSE)
 [![UI](https://img.shields.io/badge/UI-Coral%20Spectrum-E34850)](https://opensource.adobe.com/coral-spectrum/)
 [![Dependencies](https://img.shields.io/badge/runtime%20dependencies-none-268E6C)](#design-notes)
@@ -328,7 +328,7 @@ directions, so an icon added to a view cannot silently render as a blank.
 ## Packaging and submission
 
 ```bash
-npm run package   # builds package-andylunsford-friendly-format-<version>.zip
+npm run package   # builds package-friendly-format-<version>.zip
 npm run upload    # uploads the zip using Adobe OAuth Server-to-Server credentials
 npm run release   # moves the uploaded version from development to private
 ```
