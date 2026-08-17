@@ -20,8 +20,9 @@ the page.
 
 ## The problem
 
-Data layers are often stringly typed, or Launch when using default values / extensions often changes types to be “string”. XDM is not depending on your schema field groups; A schema field declared as a Boolean rejects `"true"`, a `measure` field expecting a double rejects `"$1,234.56"`, and an empty string sent to an integer field fails validation outright. 
-The usual workaround is a one-off custom code data element per field, each with its own quietly different opinion about what `""`, `null`, and `"maybe"` should mean that you then have to extrapolate across each of your data elements in custom code.
+Data layer push values are often typed as strings, or when using Adobe Data Collection Tags and enabling default values, trimming whitespace, or other extension data element usage often changes types to be “string”. Depending on your schema field groups this wrecks havoc on your XDM structure; A schema field declared as a Boolean rejects `"true"`, a schema field declared as a double rejects `"$1,234.56"`, and an empty string sent to an integer schema field fails validation as well. 
+
+The usual workaround is a one-off custom code data element wrapper per field, each with its own quietly different opinion about what `""`, `null`, and `"maybe"` should mean that you then have to extrapolate across each of your data elements in custom code.
 
 Friendly Format replaces those snippets with three configurable data element types.
 
@@ -37,8 +38,8 @@ Friendly Format replaces those snippets with three configurable data element typ
 flowchart LR
     A["Data layer<br/><code>'Yes'</code>"] --> B["Source data element<br/><code>%rawLoggedIn%</code>"]
     B --> C["Friendly Format<br/>String to Boolean"]
-    C --> D["XDM object<br/><code>true</code>"]
-    D --> E["Web SDK → Platform"]
+    C --> D["XDM field<br/><code>true</code>"]
+    D --> E["Adobe Experience Platform"]
 ```
 
 ---
@@ -49,12 +50,11 @@ flowchart LR
   - [String to Boolean](#string-to-boolean)
   - [String to Integer](#string-to-integer)
   - [String to Double](#string-to-double)
-- [Edge cases and the Default Value trap](#edge-cases-and-the-default-value-trap)
+- [Edge cases / Default Value Disclaimer](#edge-cases--default-value-disclaimer)
 - [Installation](#installation)
 - [Walkthrough](#walkthrough)
 - [Local development](#local-development)
 - [Project layout](#project-layout)
-- [Packaging and submission](#packaging-and-submission)
 - [Design notes](#design-notes)
 - [Contributing](#contributing)
 - [License](#license)
@@ -67,7 +67,7 @@ All three types share the same shape: a **Value to convert** field — normally 
 data element token such as `%rawLoggedIn%`, inserted with the standard data
 element picker next to the field — plus parsing options and three explicit
 edge-case settings. The views are built with [Coral Spectrum](https://opensource.adobe.com/coral-spectrum/), so they look and
-behave like the rest of the Data Collection UI. Full reference: [`docs/data-element-types.md`](docs/data-element-types.md).
+behave like the rest of the Data Collection UI.
 
 ### String to Boolean
 
@@ -142,9 +142,9 @@ Parses a number and optionally rounds it to a fixed number of decimal places.
 
 ---
 
-## Edge cases and the Default Value trap
+## Edge cases / Default Value disclaimer
 
-Every type answers three questions explicitly, rather than guessing:
+Every type has three questions for configuration explicitly available, rather than guessing or assuming your desired use-case:
 
 | Input | Setting | Options |
 | --- | --- | --- |
@@ -197,8 +197,7 @@ Once the extension is published to the Data Collection catalog:
 3. Create a data element, choose **Friendly Format** as the extension, then pick
    **String to Boolean**, **String to Integer**, or **String to Double**.
 
-To try it before publication, upload the package to your own organization —
-see [Packaging and submission](#packaging-and-submission).
+To try it before publication / approval in public release, please feel free to reach out to me and I will assist with enabling your organization to have access.  Caveat Emptor, this extension is very much in an alpha / beta release currently
 
 ---
 
@@ -308,8 +307,7 @@ docs/                           Option reference, submission checklist, UI frame
 Everything under `src/view` stays exactly one directory deep. That is a hosting
 constraint, not a style preference: Adobe drops more deeply nested paths when it
 serves an uploaded package, and neither the sandbox nor `reactor-validator`
-catches it — `tests/viewAssets.test.js` does. See
-[docs/submission.md](docs/submission.md#view-assets-have-to-stay-one-directory-deep).
+catches it — `tests/viewAssets.test.js` does.
 
 The views load Coral Spectrum from the package itself rather than a CDN, so
 `src/view/coral` has to exist before the sandbox, the tests, or the
@@ -322,22 +320,6 @@ thousand icons and the views reference one, so the sprite is rebuilt from the
 `icon="…"` attributes found in `src/view`. That is 45% of the packaged size.
 `tests/icons.test.js` checks the sprite and the views against each other in both
 directions, so an icon added to a view cannot silently render as a blank.
-
----
-
-## Packaging and submission
-
-```bash
-npm run package   # builds package-friendly-format-<version>.zip
-npm run upload    # uploads the zip using Adobe OAuth Server-to-Server credentials
-npm run release   # moves the uploaded version from development to private
-```
-
-[`docs/submission.md`](docs/submission.md) walks through the full Adobe
-[submission path](https://experienceleague.adobe.com/en/docs/experience-platform/tags/extension-dev/submit/overview)
-— org setup, permissions, Exchange listing, upload, and release — and tracks
-what still needs a real value before submission: the Exchange URL, author
-contact, and the placeholder icon.
 
 ---
 
@@ -358,10 +340,7 @@ contact, and the placeholder icon.
   stateless forms do not; Spectrum CSS is styling only, leaving the tag entry
   and dropdown behavior to write by hand. Coral Spectrum sits between them —
   Spectrum-styled components that behave on their own, with no build step. The
-  trade is package size and an older Spectrum generation. Migrating to React
-  Spectrum is the move if the views ever grow stateful —
-  [`docs/ui-framework.md`](docs/ui-framework.md) has the measured sizes and what
-  each alternative would cost.
+  trade is package size and an older Spectrum generation.
 - **One source of truth for enums.** Every value the manifest restricts is named
   in [`src/lib/helpers/constants.js`](src/lib/helpers/constants.js), and
   [`tests/manifest.test.js`](tests/manifest.test.js) checks the manifest, the
@@ -373,8 +352,7 @@ contact, and the placeholder icon.
   default for all of them is to leave the value unset rather than invent one.
 - **Known limits.** Stripping non-numeric characters also strips exponent
   notation, and integers beyond `Number.MAX_SAFE_INTEGER` lose precision as they
-  do anywhere in JavaScript. Both are documented in
-  [`docs/data-element-types.md`](docs/data-element-types.md#caveats).
+  do anywhere in JavaScript.
 
 ---
 
