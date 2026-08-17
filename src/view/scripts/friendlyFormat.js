@@ -4,7 +4,7 @@
  * The views are built on Coral Spectrum, Adobe's implementation of the Spectrum
  * design system, which ships as custom elements: `<input is="coral-textfield">`,
  * `<coral-checkbox>`, `<coral-select>`, `<coral-taglist>`, and so on. Coral is
- * vendored into `src/view/vendor/coral` so the package carries its own copy
+ * vendored into `src/view/coral` so the package carries its own copy
  * rather than depending on a CDN.
  */
 window.friendlyFormat = (function () {

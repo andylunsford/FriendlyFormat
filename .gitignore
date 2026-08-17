@@ -4,7 +4,7 @@ node_modules/
 
 # Build artifacts
 package-*.zip
-src/view/vendor/
+src/view/coral/
 .sandbox/files/
 .sandbox/launch-*.js
 coverage/

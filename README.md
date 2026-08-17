@@ -9,7 +9,7 @@ that XDM actually expects — in the Tags runtime, before the data ever leaves
 the page.
 
 [![Platform](https://img.shields.io/badge/platform-web-1473E6)](https://experienceleague.adobe.com/en/docs/experience-platform/tags/extension-dev/overview)
-[![Extension version](https://img.shields.io/badge/version-1.0.0-2680EB)](CHANGELOG.md)
+[![Extension version](https://img.shields.io/badge/version-1.0.2-2680EB)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-6E6E6E)](LICENSE)
 [![UI](https://img.shields.io/badge/UI-Coral%20Spectrum-E34850)](https://opensource.adobe.com/coral-spectrum/)
 [![Dependencies](https://img.shields.io/badge/runtime%20dependencies-none-268E6C)](#design-notes)
@@ -20,14 +20,10 @@ the page.
 
 ## The problem
 
-Data layers are stringly typed. XDM is not. A schema field declared as a Boolean
-rejects `"true"`, a `measure` field rejects `"$1,234.56"`, and an empty string
-sent to an integer field fails validation outright. The usual workaround is a
-one-off custom code data element per field, each with its own quietly different
-opinion about what `""`, `null`, and `"maybe"` should mean.
+Data layers are often stringly typed, or Launch when using default values / extensions often changes types to be “string”. XDM is not depending on your schema field groups; A schema field declared as a Boolean rejects `"true"`, a `measure` field expecting a double rejects `"$1,234.56"`, and an empty string sent to an integer field fails validation outright. 
+The usual workaround is a one-off custom code data element per field, each with its own quietly different opinion about what `""`, `null`, and `"maybe"` should mean that you then have to extrapolate across each of your data elements in custom code.
 
-Friendly Format replaces those snippets with three configurable data element
-types.
+Friendly Format replaces those snippets with three configurable data element types.
 
 | Data layer value | Sent without conversion | Sent with Friendly Format |
 | --- | --- | --- |
@@ -70,10 +66,8 @@ flowchart LR
 All three types share the same shape: a **Value to convert** field — normally a
 data element token such as `%rawLoggedIn%`, inserted with the standard data
 element picker next to the field — plus parsing options and three explicit
-edge-case settings. The views are built with
-[Coral Spectrum](https://opensource.adobe.com/coral-spectrum/), so they look and
-behave like the rest of the Data Collection UI. Full reference:
-[`docs/data-element-types.md`](docs/data-element-types.md).
+edge-case settings. The views are built with [Coral Spectrum](https://opensource.adobe.com/coral-spectrum/), so they look and
+behave like the rest of the Data Collection UI. Full reference: [`docs/data-element-types.md`](docs/data-element-types.md).
 
 ### String to Boolean
 
@@ -98,8 +92,7 @@ Matches the input against a list of true values and a list of false values.
 Both lists are tag fields, pre-filled with the defaults: type a value and press
 **Tab**, Enter, or comma to add it, and select the **X** on a tag to remove it.
 *Restore defaults* refills a list, so `Enabled` / `Disabled` or `Y` / `N` are as
-easy to set up as the defaults are to keep. **Truthiness conversion** handles "treat anything that is not
-explicitly false as true": it judges numeric strings numerically, so `"2"` is
+easy to set up as the defaults are to keep. **Truthiness conversion** handles "treat anything that is not explicitly false as true": it judges numeric strings numerically, so `"2"` is
 `true` while `"0.0"` and `"-0"` are `false`, and everything else non-empty is
 `true`. A value that is already a Boolean passes through untouched.
 
@@ -184,7 +177,7 @@ Every type answers three questions explicitly, rather than guessing:
 Choose deliberately between the two clean outcomes:
 
 - **`null`** — the field is sent with a null value, which **clears** it in
-  Platform. Choose *Return null* and leave Default Value empty.
+  Platform if working with a merged schema data element. Choose *Return null* and leave Default Value empty.
 - **`undefined`** — the field is **omitted** from the payload, leaving any
   existing profile value untouched. Choose *Return nothing (undefined)* and
   leave Default Value empty.
@@ -234,12 +227,39 @@ _satellite.getVar('loggedIn');          // true
 typeof _satellite.getVar('loggedIn');   // "boolean", not "string"
 ```
 
+### When a data element returns `undefined`
+
+`undefined` is a real result here, not a failure: it is what **Return nothing
+(omit)** asks for, and it is the default for unmatched, empty, and null. So a
+field you meant to omit and a source value that never arrived look exactly the
+same from the outside.
+
+Turn on logging and re-resolve the data element, and each type will say which
+path it took:
+
+```js
+_satellite.setDebug(true);
+_satellite.getVar('loggedIn');
+```
+
+```
+String to Boolean: "loggedIn" is in neither the true nor the false list;
+unmatchedBehavior "omit" returned undefined. The field is left out of the payload.
+```
+
+Values dropped by a fallback setting log at `warn`; successful conversions log at
+`debug`. The message above is the most common configuration mistake: a data
+element *name* in the source field instead of a `%token%`. It passes validation,
+since any non-empty text is allowed, then matches nothing at runtime. Use the
+data element icon beside the field to insert `%loggedIn%` rather than typing the
+name.
+
 ---
 
 ## Local development
 
 ```bash
-npm install       # also copies Coral Spectrum into src/view/vendor
+npm install       # also copies Coral Spectrum into src/view/coral
 npm test          # unit tests for the library modules (node:test, no browser needed)
 npm run validate  # reactor-validator: checks extension.json against the manifest schema
 npm run vendor    # refreshes the vendored Coral Spectrum on demand
@@ -276,7 +296,7 @@ src/lib/dataElements/           Runtime library modules, one per type (CommonJS,
 src/lib/helpers/                Shared edge-case logic, numeric parsing, and the enum constants
 src/view/dataElements/          Configuration views shown in the Tags UI
 src/view/scripts|styles/        Shared view helpers and layout
-src/view/vendor/coral/          Coral Spectrum runtime, built at package time (not committed)
+src/view/coral/                 Coral Spectrum runtime, built at package time (not committed)
 scripts/vendor-coral.js         Copies Coral Spectrum in, trimming its icon sprite to what the views use
 resources/icons/                Extension icon shown in the Tags catalog
 docs/assets/                    Project logo used by this README
@@ -285,8 +305,14 @@ docs/                           Option reference, submission checklist, UI frame
 .sandbox/container.js           Sample data elements for local sandbox testing
 ```
 
+Everything under `src/view` stays exactly one directory deep. That is a hosting
+constraint, not a style preference: Adobe drops more deeply nested paths when it
+serves an uploaded package, and neither the sandbox nor `reactor-validator`
+catches it — `tests/viewAssets.test.js` does. See
+[docs/submission.md](docs/submission.md#view-assets-have-to-stay-one-directory-deep).
+
 The views load Coral Spectrum from the package itself rather than a CDN, so
-`src/view/vendor/coral` has to exist before the sandbox, the tests, or the
+`src/view/coral` has to exist before the sandbox, the tests, or the
 packager run. `npm install`, `npm test`, `npm run sandbox`, and `npm run package`
 each refresh it automatically; `npm run vendor` does it on demand. The output is
 not committed.
@@ -359,7 +385,7 @@ Issues and pull requests are welcome at
 `npm run validate` before opening a pull request, and add unit tests for any new
 conversion behavior. Changes to the runtime modules should stay ES5 and
 dependency free, views should use Coral Spectrum components rather than custom
-controls, and `src/view/vendor/` should never be committed.
+controls, and `src/view/coral/` should never be committed.
 
 ---
 

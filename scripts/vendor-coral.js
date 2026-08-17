@@ -29,29 +29,39 @@ const coralDist = path.join(
   'coral-spectrum',
   'dist'
 );
-// Coral derives the location of its icon sprites from the URL of coral.min.js,
-// expecting the layout it ships with: <root>/dist/js/coral.min.js alongside
-// <root>/dist/resources. Vendoring into any other shape breaks every icon, so
-// the `dist` level is preserved here deliberately.
-const destination = path.join(
-  projectRoot,
-  'src',
-  'view',
-  'vendor',
-  'coral',
-  'dist'
-);
+// Everything lands directly in src/view/coral, flat, and that shape is load
+// bearing. Adobe hosts the unpacked package at
+// assets.adobedtm.com/extensions/<packageId>/, but it does not host all of it:
+// files one directory below src/view are served, and a nested tree is silently
+// dropped. Uploading Coral at src/view/vendor/coral/dist/js/coral.min.js gets a
+// 404 on every file in that tree — including a 400-byte README beside them, so
+// this is about the path, not the size — and the views then load without a
+// stylesheet or a component runtime. Adobe documents no such rule, and it is
+// not visible until an upload is opened in the Data Collection UI, so keep view
+// assets exactly one directory deep.
+//
+// The flat layout costs the icon sprites, which Coral otherwise locates by
+// walking up from the URL of coral.min.js and expecting the layout it ships
+// with: <root>/dist/js/coral.min.js beside <root>/dist/resources. The views
+// override that with data-coral-icons on the Coral script tag, which Coral
+// reads off its own script element's dataset. Moving these files means updating
+// that attribute too.
+const destination = path.join(projectRoot, 'src', 'view', 'coral');
 
 const WORKFLOW_SPRITE = 'resources/spectrum-icons.svg';
 
-// Copied as-is. The dist directory also carries documentation, coverage, and
-// playground folders that have no place in the package.
+// Copied as-is, flattened into the destination. The dist directory also carries
+// documentation, coverage, and playground folders that have no place in the
+// package.
 //
 // spectrum-css-icons.svg holds the small UI glyphs Coral draws itself — the
 // select chevron, the checkbox checkmark, the tag remove cross, the alert
 // triangle — so all of it is needed. spectrum-icons-color.svg is requested at
 // load whether or not a color icon is used, so it stays too rather than trade
 // 25 KB for a console 404.
+//
+// coral.min.css needs no rewriting to survive the flattening: it inlines every
+// glyph it uses as a data URI and references no external file at all.
 const files = [
   'css/coral.min.css',
   'js/coral.min.js',
@@ -76,7 +86,7 @@ const viewSources = function (directory) {
 
     if (entry.isDirectory()) {
       // The vendored copy is output, not source.
-      return entry.name === 'vendor' ? found : found.concat(viewSources(entryPath));
+      return entry.name === 'coral' ? found : found.concat(viewSources(entryPath));
     }
 
     return /\.(html|js)$/.test(entry.name) ? found.concat(entryPath) : found;
@@ -138,19 +148,22 @@ const buildSprite = function (iconNames) {
   return { markup: root + symbols.join('') + '</svg>', count: symbols.length };
 };
 
-files.forEach(function (file) {
-  const target = path.join(destination, file);
+fs.mkdirSync(destination, { recursive: true });
 
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.copyFileSync(path.join(coralDist, file), target);
+files.forEach(function (file) {
+  fs.copyFileSync(
+    path.join(coralDist, file),
+    path.join(destination, path.basename(file))
+  );
 });
 
 const icons = referencedIcons();
 const sprite = buildSprite(icons);
-const spriteTarget = path.join(destination, WORKFLOW_SPRITE);
 
-fs.mkdirSync(path.dirname(spriteTarget), { recursive: true });
-fs.writeFileSync(spriteTarget, sprite.markup);
+fs.writeFileSync(
+  path.join(destination, path.basename(WORKFLOW_SPRITE)),
+  sprite.markup
+);
 
 const version = require(path.join(
   projectRoot,
@@ -161,14 +174,20 @@ const version = require(path.join(
 )).version;
 
 fs.writeFileSync(
-  path.join(destination, '..', 'README.md'),
+  path.join(destination, 'README.md'),
   [
     '# Vendored Coral Spectrum',
     '',
     `Copied from \`@adobe/coral-spectrum\` ${version} by \`scripts/vendor-coral.js\`.`,
     '',
-    '`resources/spectrum-icons.svg` is not Coral\'s copy: it is rebuilt with only',
-    'the icons the views reference. Everything else is verbatim.',
+    '`spectrum-icons.svg` is not Coral\'s copy: it is rebuilt with only the icons',
+    'the views reference. Everything else is verbatim.',
+    '',
+    'Coral ships these under `dist/css`, `dist/js`, and `dist/resources`. They are',
+    'flattened into this one directory because Adobe does not serve nested',
+    'directories from an uploaded extension package; see the comments in',
+    '`scripts/vendor-coral.js`. The views point Coral at the sprites here with',
+    '`data-coral-icons` on its script tag.',
     '',
     'Do not edit these files, and do not commit them: they are regenerated by',
     '`npm install`, `npm test`, `npm run sandbox`, and `npm run package`.',
@@ -179,7 +198,7 @@ fs.writeFileSync(
 console.log(
   'Vendored Coral Spectrum ' +
     version +
-    ' into src/view/vendor/coral (' +
+    ' into src/view/coral (' +
     (files.length + 1) +
     ' files, workflow sprite trimmed to ' +
     sprite.count +

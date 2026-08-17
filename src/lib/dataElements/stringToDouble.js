@@ -1,7 +1,16 @@
 'use strict';
 
 var behaviors = require('../helpers/behaviors');
+var logger = require('../helpers/logger');
 var parseNumber = require('../helpers/parseNumber');
+
+var TYPE = 'String to Double';
+
+/** Logs the outcome and returns it, so every exit point stays a one-liner. */
+var reporting = function (outcome) {
+  logger.report(outcome);
+  return outcome.result;
+};
 
 /**
  * Converts a string into a floating point number for XDM double/number fields.
@@ -27,11 +36,25 @@ module.exports = function (settings) {
   );
 
   if (source.state === 'nullish') {
-    return behaviors.resolveBehavior(settings.nullBehavior);
+    return reporting({
+      type: TYPE,
+      path: logger.PATH.NULLISH,
+      sourceValue: settings.sourceValue,
+      setting: 'nullBehavior',
+      behavior: settings.nullBehavior,
+      result: behaviors.resolveBehavior(settings.nullBehavior)
+    });
   }
 
   if (source.state === 'empty') {
-    return behaviors.resolveBehavior(settings.emptyBehavior);
+    return reporting({
+      type: TYPE,
+      path: logger.PATH.EMPTY,
+      sourceValue: settings.sourceValue,
+      setting: 'emptyBehavior',
+      behavior: settings.emptyBehavior,
+      result: behaviors.resolveBehavior(settings.emptyBehavior)
+    });
   }
 
   var parsed = parseNumber.parseNumber(source.value, {
@@ -41,7 +64,14 @@ module.exports = function (settings) {
   });
 
   if (!isFinite(parsed)) {
-    return behaviors.resolveBehavior(settings.invalidBehavior);
+    return reporting({
+      type: TYPE,
+      path: logger.PATH.INVALID,
+      sourceValue: source.value,
+      setting: 'invalidBehavior',
+      behavior: settings.invalidBehavior,
+      result: behaviors.resolveBehavior(settings.invalidBehavior)
+    });
   }
 
   var precision = settings.precision;
@@ -50,6 +80,11 @@ module.exports = function (settings) {
     parsed = Number(parsed.toFixed(precision));
   }
 
-  // Normalize -0 so downstream JSON serialization emits 0.
-  return parsed === 0 ? 0 : parsed;
+  return reporting({
+    type: TYPE,
+    path: logger.PATH.PARSED,
+    sourceValue: source.value,
+    // Normalize -0 so downstream JSON serialization emits 0.
+    result: parsed === 0 ? 0 : parsed
+  });
 };

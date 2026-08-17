@@ -2,9 +2,18 @@
 
 var behaviors = require('../helpers/behaviors');
 var constants = require('../helpers/constants');
+var logger = require('../helpers/logger');
 
 var DEFAULT_TRUE_VALUES = constants.DEFAULT_TRUE_VALUES;
 var DEFAULT_FALSE_VALUES = constants.DEFAULT_FALSE_VALUES;
+
+var TYPE = 'String to Boolean';
+
+/** Logs the outcome and returns it, so every exit point stays a one-liner. */
+var reporting = function (outcome) {
+  logger.report(outcome);
+  return outcome.result;
+};
 
 var normalizeList = function (list, fallback, caseSensitive) {
   var source = Array.isArray(list) && list.length ? list : fallback;
@@ -53,17 +62,36 @@ module.exports = function (settings) {
   var sourceValue = settings.sourceValue;
 
   if (typeof sourceValue === 'boolean') {
-    return sourceValue;
+    return reporting({
+      type: TYPE,
+      path: logger.PATH.PASSTHROUGH,
+      sourceValue: sourceValue,
+      result: sourceValue
+    });
   }
 
   var source = behaviors.inspectSource(sourceValue, settings.trimWhitespace);
 
   if (source.state === 'nullish') {
-    return behaviors.resolveBehavior(settings.nullBehavior);
+    return reporting({
+      type: TYPE,
+      path: logger.PATH.NULLISH,
+      sourceValue: sourceValue,
+      setting: 'nullBehavior',
+      behavior: settings.nullBehavior,
+      result: behaviors.resolveBehavior(settings.nullBehavior)
+    });
   }
 
   if (source.state === 'empty') {
-    return behaviors.resolveBehavior(settings.emptyBehavior);
+    return reporting({
+      type: TYPE,
+      path: logger.PATH.EMPTY,
+      sourceValue: sourceValue,
+      setting: 'emptyBehavior',
+      behavior: settings.emptyBehavior,
+      result: behaviors.resolveBehavior(settings.emptyBehavior)
+    });
   }
 
   var caseSensitive = Boolean(settings.caseSensitive);
@@ -75,7 +103,13 @@ module.exports = function (settings) {
       comparable
     )
   ) {
-    return true;
+    return reporting({
+      type: TYPE,
+      path: logger.PATH.MATCHED,
+      sourceValue: source.value,
+      detail: 'the true list',
+      result: true
+    });
   }
 
   if (
@@ -84,12 +118,32 @@ module.exports = function (settings) {
       comparable
     )
   ) {
-    return false;
+    return reporting({
+      type: TYPE,
+      path: logger.PATH.MATCHED,
+      sourceValue: source.value,
+      detail: 'the false list',
+      result: false
+    });
   }
 
   if (settings.unmatchedBehavior === constants.BEHAVIOR.TRUTHY) {
-    return isTruthy(source.value);
+    return reporting({
+      type: TYPE,
+      path: logger.PATH.TRUTHY,
+      sourceValue: source.value,
+      setting: 'unmatchedBehavior',
+      behavior: constants.BEHAVIOR.TRUTHY,
+      result: isTruthy(source.value)
+    });
   }
 
-  return behaviors.resolveBehavior(settings.unmatchedBehavior);
+  return reporting({
+    type: TYPE,
+    path: logger.PATH.UNMATCHED,
+    sourceValue: source.value,
+    setting: 'unmatchedBehavior',
+    behavior: settings.unmatchedBehavior,
+    result: behaviors.resolveBehavior(settings.unmatchedBehavior)
+  });
 };

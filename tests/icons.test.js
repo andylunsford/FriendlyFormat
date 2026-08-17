@@ -15,14 +15,8 @@ var path = require('node:path');
 
 var ROOT = path.join(__dirname, '..');
 var VIEW_ROOT = path.join(ROOT, 'src', 'view');
-var SPRITE = path.join(
-  VIEW_ROOT,
-  'vendor',
-  'coral',
-  'dist',
-  'resources',
-  'spectrum-icons.svg'
-);
+var CORAL_ROOT = path.join(VIEW_ROOT, 'coral');
+var SPRITE = path.join(CORAL_ROOT, 'spectrum-icons.svg');
 
 var viewSources = function (directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).reduce(function (
@@ -32,7 +26,7 @@ var viewSources = function (directory) {
     var entryPath = path.join(directory, entry.name);
 
     if (entry.isDirectory()) {
-      return entry.name === 'vendor'
+      return entry.name === 'coral'
         ? found
         : found.concat(viewSources(entryPath));
     }

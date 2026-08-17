@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>String to Double</title>
-    <link rel="stylesheet" href="../vendor/coral/dist/css/coral.min.css" />
+    <link rel="stylesheet" href="../coral/coral.min.css" />
     <link rel="stylesheet" href="../styles/friendlyFormat.css" />
   </head>
   <body class="coral--light">
@@ -157,7 +157,13 @@
       </section>
     </div>
 
-    <script src="../vendor/coral/dist/js/coral.min.js"></script>
+    <!-- data-coral-icons: the sprites sit beside coral.min.js rather than in the
+         dist/resources layout Coral infers from its own URL. See
+         scripts/vendor-coral.js. -->
+    <script
+      src="../coral/coral.min.js"
+      data-coral-icons="../coral/"
+    ></script>
     <script src="https://assets.adobedtm.com/activation/reactor/extensionbridge/extensionbridge.min.js"></script>
     <script src="../scripts/friendlyFormat.js"></script>
     <script>
