@@ -1,0 +1,132 @@
+/*
+ * Layout for the Friendly Format views. Everything visual — typography, fields,
+ * buttons, tags, alerts — comes from Coral Spectrum; this file only positions
+ * those components and styles the few bits Coral has no component for.
+ */
+
+body {
+  margin: 0;
+  padding: 12px 4px 32px;
+  background: transparent;
+}
+
+.ff-view {
+  max-width: 640px;
+}
+
+.ff-section {
+  margin-bottom: 28px;
+}
+
+.ff-section-heading {
+  margin: 0 0 12px;
+}
+
+.coral-Form-fieldwrapper {
+  margin-bottom: 16px;
+}
+
+.coral-FieldLabel {
+  display: block;
+}
+
+/* Text field paired with a trailing button: the data element picker, and the
+   restore-defaults button on tag fields. */
+.ff-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ff-input-group > .ff-grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ff-input-group > [is='coral-button'] {
+  flex: 0 0 auto;
+}
+
+.ff-taglist {
+  margin-top: 8px;
+}
+
+/* Coral renders an empty taglist as a zero-height element, which makes the
+   field collapse as the last tag is removed. */
+.ff-taglist:empty::before {
+  content: 'No values';
+  display: inline-block;
+  padding: 4px 0;
+  color: var(--spectrum-global-color-gray-600, #6e6e6e);
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* Coral lays out its own checkbox internals, so each one gets a block-level
+   wrapper rather than a display override. */
+.ff-checkbox-row {
+  margin-bottom: 8px;
+}
+
+/* Coral sizes selects to their host element. */
+.ff-select {
+  width: 100%;
+  max-width: 460px;
+}
+
+.ff-select > button {
+  width: 100%;
+}
+
+/* The number input has its own stepper buttons, so it only needs a width. */
+.ff-number {
+  width: 100%;
+  max-width: 460px;
+}
+
+.ff-hint {
+  display: block;
+  margin: 4px 0 0;
+  color: var(--spectrum-global-color-gray-700, #6e6e6e);
+  font-size: 12px;
+}
+
+.ff-error {
+  display: block;
+  margin: 4px 0 0;
+  color: var(--spectrum-global-color-red-600, #d7373f);
+  font-size: 12px;
+}
+
+.ff-error[hidden] {
+  display: none;
+}
+
+.ff-alert {
+  margin-bottom: 20px;
+}
+
+.ff-alert ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.ff-alert li {
+  margin-bottom: 6px;
+}
+
+.ff-alert p {
+  margin: 0 0 8px;
+}
+
+.ff-alert p:last-child {
+  margin-bottom: 0;
+}
+
+code {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--spectrum-global-color-gray-200, rgba(0, 0, 0, 0.06));
+  font-family: "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+}

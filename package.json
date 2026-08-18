@@ -1,0 +1,34 @@
+{
+  "name": "friendly-format",
+  "version": "1.0.0",
+  "description": "Adobe Experience Platform Data Collection (Tags) extension providing string to Boolean, integer, and double data element types.",
+  "private": true,
+  "license": "Apache-2.0",
+  "author": "Andy Lunsford",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andylunsford/FriendlyFormat.git"
+  },
+  "scripts": {
+    "pretest": "npm run vendor",
+    "test": "node --test \"tests/*.test.js\"",
+    "vendor": "node scripts/vendor-coral.js",
+    "postinstall": "node scripts/vendor-coral.js",
+    "presandbox": "npm run vendor",
+    "sandbox": "reactor-sandbox",
+    "sandbox:init": "reactor-sandbox init",
+    "validate": "reactor-validator",
+    "prepackage": "npm run vendor",
+    "package": "reactor-packager",
+    "upload": "reactor-uploader",
+    "release": "reactor-releaser"
+  },
+  "devDependencies": {
+    "@adobe/coral-spectrum": "^4.21.12",
+    "@adobe/reactor-packager": "^4.4.0",
+    "@adobe/reactor-releaser": "^4.0.0",
+    "@adobe/reactor-sandbox": "^14.0.0",
+    "@adobe/reactor-uploader": "^6.0.2",
+    "@adobe/reactor-validator": "^3.0.0"
+  }
+}

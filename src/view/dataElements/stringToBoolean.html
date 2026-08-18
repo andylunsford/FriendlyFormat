@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>String to Boolean</title>
+    <link rel="stylesheet" href="../coral/coral.min.css" />
+    <link rel="stylesheet" href="../styles/friendlyFormat.css" />
+  </head>
+  <body class="coral--light">
+    <div class="ff-view">
+      <section class="ff-section">
+        <h2 class="coral-Heading coral-Heading--S ff-section-heading">Source</h2>
+
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="sourceValue">
+            Value to convert
+          </label>
+          <div class="ff-input-group">
+            <input
+              is="coral-textfield"
+              id="sourceValue"
+              class="ff-grow"
+              placeholder="%loggedIn%"
+            />
+            <button
+              is="coral-button"
+              id="sourceValueButton"
+              type="button"
+              variant="secondary"
+              icon="data"
+              iconsize="S"
+              title="Select a data element"
+            ></button>
+          </div>
+          <span class="ff-hint">
+            Select the data element icon to insert a token such as
+            <code>%loggedIn%</code>, or type a literal value.
+          </span>
+          <span class="ff-error" id="sourceValueError" hidden>
+            Please specify a value to convert.
+          </span>
+        </div>
+      </section>
+
+      <section class="ff-section">
+        <h2 class="coral-Heading coral-Heading--S ff-section-heading">
+          Matching
+        </h2>
+
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="trueValuesInput">
+            Values treated as true
+          </label>
+          <div class="ff-input-group">
+            <input
+              is="coral-textfield"
+              id="trueValuesInput"
+              class="ff-grow"
+              placeholder="Type a value, then press Tab"
+            />
+            <button
+              is="coral-button"
+              id="trueValuesRestore"
+              type="button"
+              variant="quiet"
+            >
+              Restore defaults
+            </button>
+          </div>
+          <coral-taglist id="trueValues" class="ff-taglist"></coral-taglist>
+          <span class="ff-hint">
+            Press Tab, Enter, or comma to add a value. Select the X on a tag to
+            remove it.
+          </span>
+          <span class="ff-error" id="trueValuesError" hidden>
+            Please add at least one value treated as true.
+          </span>
+        </div>
+
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="falseValuesInput">
+            Values treated as false
+          </label>
+          <div class="ff-input-group">
+            <input
+              is="coral-textfield"
+              id="falseValuesInput"
+              class="ff-grow"
+              placeholder="Type a value, then press Tab"
+            />
+            <button
+              is="coral-button"
+              id="falseValuesRestore"
+              type="button"
+              variant="quiet"
+            >
+              Restore defaults
+            </button>
+          </div>
+          <coral-taglist id="falseValues" class="ff-taglist"></coral-taglist>
+          <span class="ff-error" id="falseValuesError" hidden>
+            Please add at least one value treated as false.
+          </span>
+          <span class="ff-error" id="overlapError" hidden>
+            A value cannot be treated as both true and false.
+          </span>
+        </div>
+
+        <div class="coral-Form-fieldwrapper">
+          <div class="ff-checkbox-row">
+            <coral-checkbox id="trimWhitespace">
+              Trim surrounding whitespace before matching
+            </coral-checkbox>
+          </div>
+          <div class="ff-checkbox-row">
+            <coral-checkbox id="caseSensitive">
+              Match case sensitively
+            </coral-checkbox>
+          </div>
+          <span class="ff-hint">
+            With case sensitivity off, <code>TRUE</code> and <code>true</code>
+            are equivalent.
+          </span>
+        </div>
+      </section>
+
+      <section class="ff-section">
+        <h2 class="coral-Heading coral-Heading--S ff-section-heading">
+          Edge cases
+        </h2>
+
+        <div id="defaultValueNote"></div>
+
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="unmatchedBehavior">
+            When the value matches neither list
+          </label>
+          <coral-select id="unmatchedBehavior" class="ff-select">
+            <coral-select-item value="omit">
+              Return nothing (undefined)
+            </coral-select-item>
+            <coral-select-item value="truthy">
+              Convert by truthiness
+            </coral-select-item>
+            <coral-select-item value="true">Return true</coral-select-item>
+            <coral-select-item value="false">Return false</coral-select-item>
+            <coral-select-item value="null">
+              Return null (clears the field)
+            </coral-select-item>
+          </coral-select>
+          <span class="ff-hint">
+            Truthiness treats non-zero numbers and any other non-empty text as
+            true.
+          </span>
+        </div>
+
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="emptyBehavior">
+            When the value is empty or only whitespace
+          </label>
+          <coral-select id="emptyBehavior" class="ff-select">
+            <coral-select-item value="omit">
+              Return nothing (undefined)
+            </coral-select-item>
+            <coral-select-item value="false">Return false</coral-select-item>
+            <coral-select-item value="true">Return true</coral-select-item>
+            <coral-select-item value="null">
+              Return null (clears the field)
+            </coral-select-item>
+          </coral-select>
+        </div>
+
+        <div class="coral-Form-fieldwrapper">
+          <label class="coral-FieldLabel" for="nullBehavior">
+            When the value is null or undefined
+          </label>
+          <coral-select id="nullBehavior" class="ff-select">
+            <coral-select-item value="omit">
+              Return nothing (undefined)
+            </coral-select-item>
+            <coral-select-item value="false">Return false</coral-select-item>
+            <coral-select-item value="true">Return true</coral-select-item>
+            <coral-select-item value="null">
+              Return null (clears the field)
+            </coral-select-item>
+          </coral-select>
+        </div>
+      </section>
+    </div>
+
+    <!-- data-coral-icons: the sprites sit beside coral.min.js rather than in the
+         dist/resources layout Coral infers from its own URL. See
+         scripts/vendor-coral.js. -->
+    <script
+      src="../coral/coral.min.js"
+      data-coral-icons="../coral/"
+    ></script>
+    <script src="https://assets.adobedtm.com/activation/reactor/extensionbridge/extensionbridge.min.js"></script>
+    <script src="../scripts/friendlyFormat.js"></script>
+    <script>
+      (function () {
+        'use strict';
+
+        var ff = window.friendlyFormat;
+
+        var DEFAULT_TRUE_VALUES = ['true', 'yes', 'y', '1', 'on', 't'];
+        var DEFAULT_FALSE_VALUES = ['false', 'no', 'n', '0', 'off', 'f'];
+
+        ff.renderDefaultValueNote('defaultValueNote');
+        ff.wireDataElementButton('sourceValue', 'sourceValueButton');
+
+        var trueValues = ff.createTagField({
+          tagListId: 'trueValues',
+          inputId: 'trueValuesInput',
+          restoreId: 'trueValuesRestore',
+          defaults: DEFAULT_TRUE_VALUES
+        });
+
+        var falseValues = ff.createTagField({
+          tagListId: 'falseValues',
+          inputId: 'falseValuesInput',
+          restoreId: 'falseValuesRestore',
+          defaults: DEFAULT_FALSE_VALUES
+        });
+
+        window.extensionBridge.register({
+          init: function (info) {
+            var settings = (info && info.settings) || {};
+
+            ff.setValue('sourceValue', settings.sourceValue);
+
+            // A saved data element always carries both lists, so an absent list
+            // means this is a new data element: start from the defaults.
+            trueValues.setValues(settings.trueValues || DEFAULT_TRUE_VALUES);
+            falseValues.setValues(settings.falseValues || DEFAULT_FALSE_VALUES);
+
+            ff.setChecked('trimWhitespace', settings.trimWhitespace, true);
+            ff.setChecked('caseSensitive', settings.caseSensitive, false);
+            ff.setSelect('unmatchedBehavior', settings.unmatchedBehavior, 'omit');
+            ff.setSelect('emptyBehavior', settings.emptyBehavior, 'omit');
+            ff.setSelect('nullBehavior', settings.nullBehavior, 'omit');
+          },
+
+          getSettings: function () {
+            trueValues.commitPendingInput();
+            falseValues.commitPendingInput();
+
+            return {
+              sourceValue: ff.getValue('sourceValue').trim(),
+              trueValues: trueValues.getValues(),
+              falseValues: falseValues.getValues(),
+              trimWhitespace: ff.isChecked('trimWhitespace'),
+              caseSensitive: ff.isChecked('caseSensitive'),
+              unmatchedBehavior: ff.getValue('unmatchedBehavior'),
+              emptyBehavior: ff.getValue('emptyBehavior'),
+              nullBehavior: ff.getValue('nullBehavior')
+            };
+          },
+
+          validate: function () {
+            trueValues.commitPendingInput();
+            falseValues.commitPendingInput();
+
+            var sourceValid = ff.validateSourceValue();
+
+            var trueList = trueValues.getValues();
+            var falseList = falseValues.getValues();
+
+            ff.showError('trueValuesError', !trueList.length);
+            ff.showError('falseValuesError', !falseList.length);
+
+            var caseSensitive = ff.isChecked('caseSensitive');
+            var normalize = function (entry) {
+              return caseSensitive ? entry : entry.toLowerCase();
+            };
+            var normalizedFalse = falseList.map(normalize);
+            var overlaps = trueList.map(normalize).some(function (entry) {
+              return normalizedFalse.indexOf(entry) !== -1;
+            });
+
+            ff.showError('overlapError', overlaps);
+
+            return Boolean(
+              sourceValid && trueList.length && falseList.length && !overlaps
+            );
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
