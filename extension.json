@@ -8,7 +8,9 @@
   "author": {
     "name": "Andy Lunsford",
     "url": "https://github.com/andylunsford/FriendlyFormat"
+    "email": "launch-extension@andylunsford.com"
   },
+  "releaseNotesUrl":"https://github.com/andylunsford/FriendlyFormat/releases"
   "viewBasePath": "src/view/",
   "dataElements": [
     {
